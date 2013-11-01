@@ -12,8 +12,25 @@ import time
 
 # Authenticate for the calendar
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')
-client.ClientLogin('jaysdummy', 'jaysdummy123', client.source) 
+client.ClientLogin('utcaldummy', 'utcaldummy123', client.source) 
 
 # Figure out what calendars that user has
 feed = client.GetAllCalendarsFeed()
 print feed.title.text
+
+# Grab that user's calendars
+for i, a_calendar in enumerate(feed.entry):
+  print '\t%s. %s' % (i, a_calendar.title.text)
+
+# Get calendar event's on a specific day/range
+start_date = '2013-10-31'
+end_date = '2013-11-29'
+
+query = gdata.calendar.client.CalendarEventQuery()
+query.start_min = start_date
+query.start_max = end_date
+
+print 'Grabbing events between %s -- %s' % (start_date, end_date)
+feed = client.GetCalendarEventFeed(q=query)
+for i, an_event in enumerate(feed.entry):
+  print '\t%s. %s' % (i, an_event.title.text)

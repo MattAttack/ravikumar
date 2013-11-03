@@ -8,12 +8,18 @@ import gdata.calendar.client
 import gdata.acl.data
 import atom.data
 import time
-#imports used for email connection
+
+# Email Connection
 import imaplib
 import email
 
+# Notes: (Add notes here as you encounter things):
+# 	- Google's Calendar API interacts with dates in RFC 3339 format
+#	- Calendar API Concepts and Use Cases: https://developers.google.com/google-apps/calendar/concepts		
 
-#global variables used for authentication
+
+# Global variables for authenication
+# TODO: Consider having these passed in our functions
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')
 mail = imaplib.IMAP4_SSL('imap.gmail.com')
 username = 'utcaldummy'
@@ -21,9 +27,9 @@ password = 'utcaldummy123'
 
 # Authenticate for the calendar and email
 def createConnection():
-	#conncet to calendar
+	# connect to calendar
 	client.ClientLogin(username, password, client.source) 
-	#connect to email inbox
+	# connect to email inbox
 	mail.login(username+'@gmail.com', password)
 	mail.list()
 	mail.select("INBOX") # connect to inbox.
@@ -46,10 +52,14 @@ def setUpCalendars():
 	query.start_min = start_date
 	query.start_max = end_date
 
+	# Documentation on calendar events can be found at the following:
+	# http://sourcecodebrowser.com/python-gdata/1.0.9/classgdata_1_1calendar_1_1_calendar_event_entry.html#a0ad621c0a499ab19727a136aa35d5ab7
+
 	print 'Grabbing events between %s -- %s' % (start_date, end_date)
 	feed = client.GetCalendarEventFeed(q=query)
 	for i, an_event in enumerate(feed.entry):
 		print '\t%s. %s' % (i, an_event.title.text)
+		print 'Begins at %s' % (str(an_event.when[0]))
 
 def accessEmail():
 	status, data = mail.search(None, 'ALL')
@@ -61,8 +71,8 @@ def accessEmail():
 	print "Printing 1st Read/Unread Email: \n"
 	print raw_email
 
-
-
-createConnection()
-setUpCalendars()
-accessEmail()
+if __name__ == "__main__":
+	createConnection()
+	setUpCalendars()
+	# accessEmail()
+	

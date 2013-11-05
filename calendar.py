@@ -33,7 +33,7 @@ def createConnection():
 	mail.login(username+'@gmail.com', password)
 	mail.list()
 	mail.select("INBOX") # connect to inbox.
-	print "Succesfully Connected to Calendar and Inbox \n"
+	print "Succesfully Connected to Calendar and Inbox! \n"
 
 def setUpCalendars():
 	# Figure out what calendars that user has

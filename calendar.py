@@ -1,4 +1,4 @@
-#!/usr/bin/python 
+#!/usr/bin/python
 try:
   from xml.etree import ElementTree
 except ImportError:
@@ -15,7 +15,7 @@ import email
 
 # Notes: (Add notes here as you encounter things):
 # 	- Google's Calendar API interacts with dates in RFC 3339 format
-#	- Calendar API Concepts and Use Cases: https://developers.google.com/google-apps/calendar/concepts		
+#	- Calendar API Concepts and Use Cases: https://developers.google.com/google-apps/calendar/concepts
 
 
 # Global variables for authenication
@@ -28,7 +28,7 @@ password = 'utcaldummy123'
 # Authenticate for the calendar and email
 def createConnection():
 	# connect to calendar
-	client.ClientLogin(username, password, client.source) 
+	client.ClientLogin(username, password, client.source)
 	# connect to email inbox
 	mail.login(username+'@gmail.com', password)
 	mail.list()
@@ -66,7 +66,7 @@ def accessEmail():
 	ids = data[0] # data is a list.
 	id_list = ids.split() # ids is a space separated string
 	latest_email_id = id_list[-1] # get the latest
-	result, data = mail.fetch(latest_email_id, "(RFC822)") # fetch the email body (RFC822) for the given ID	 
+	result, data = mail.fetch(latest_email_id, "(RFC822)") # fetch the email body (RFC822) for the given ID
 	raw_email = data[0][1] #this variable is an "email" object
 	print "Printing 1st Read/Unread Email: \n"
 	print raw_email
@@ -75,4 +75,4 @@ if __name__ == "__main__":
 	createConnection()
 	setUpCalendars()
 	# accessEmail()
-	
+

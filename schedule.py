@@ -14,6 +14,9 @@ import time
 import imaplib
 import email
 
+#Work with other scripts
+import pull_email
+
 # Global variables for authentication
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')  # Dummy Google API Key
 mail = imaplib.IMAP4_SSL('imap.gmail.com')
@@ -33,7 +36,7 @@ def create_connection():
 
     print "Succesfully Connected to Calendar and Inbox! \n"
 
-def set_up_calendars():
+def access_calendar():
     # Figure out what calendar the user has
     feed = client.GetAllCalendarsFeed()
     # print feed.title.text
@@ -61,7 +64,7 @@ def set_up_calendars():
 
 # The loop that takes in an input and parses it and then executes the appropraite event
 # Currently called 'initiate loop', needs a better name but should work for basic implementation
-def initiate_loop():
+def manual_input():
     user_input = raw_input("Enter event title, event will automatically be made for right now: ")
 
     # Create the event. Currently using Google's quick add feature which handles the extensive
@@ -108,10 +111,13 @@ def InsertSingleEvent(calendar_client=client,
 
     return new_event
 
+def check_email():
+    print pull_email.getEmail()
+
 def main():
     create_connection()
-    set_up_calendars()
-    initiate_loop()
+    access_calendar()
+    check_email()
 
 if __name__ == "__main__":
     main()

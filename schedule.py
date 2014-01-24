@@ -21,7 +21,7 @@ username = 'utcaldummy'
 password = 'utcaldummy123'
 
 # Authenticate for the calendar and email to be able to access the user's
-# email and access the calendar
+# email and access the calendarb
 def create_connection():
     # Connect to the calendar
     client.ClientLogin(username, password, client.source)
@@ -62,7 +62,7 @@ def set_up_calendars():
 # The loop that takes in an input and parses it and then executes the appropraite event
 # Currently called 'initiate loop', needs a better name but should work for basic implementation
 def initiate_loop():
-    user_input = raw_input("Enter calendar command: ")
+    user_input = raw_input("Enter event title, event will automatically be made for right now: ")
 
     # Create the event. Currently using Google's quick add feature which handles the extensive
     # parsing for you. Information on how to use this can be found here:

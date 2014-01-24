@@ -8,6 +8,7 @@ import gdata.calendar.client
 import gdata.acl.data
 import atom.data
 import time
+import email
 
 # Email Connection
 import imaplib
@@ -61,6 +62,7 @@ def setUpCalendars():
 		print '\t%s. %s' % (i, an_event.title.text)
 		print 'Begins at %s' % (str(an_event.when[0]))
 
+#Returns the body of the most recent email
 def accessEmail():
 	status, data = mail.search(None, 'ALL')
 	ids = data[0] # data is a list.
@@ -68,11 +70,16 @@ def accessEmail():
 	latest_email_id = id_list[-1] # get the latest
 	result, data = mail.fetch(latest_email_id, "(RFC822)") # fetch the email body (RFC822) for the given ID
 	raw_email = data[0][1] #this variable is an "email" object
-	print "Printing 1st Read/Unread Email: \n"
-	print raw_email
 
-if __name__ == "__main__":
+	#hack to find the text quickly, had trouble parsing MIME object
+	msg = raw_email.split("--")
+	return msg[2]
+
+def main():
 	createConnection()
 	setUpCalendars()
-	# accessEmail()
+	accessEmail()
+
+if __name__ == "__main__":
+	main()
 

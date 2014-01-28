@@ -11,6 +11,8 @@ import email
 # Email Connection
 import imaplib
 
+import pdb
+
 # Notes: (Add notes here as you encounter things):
 # 	- Google's Calendar API interacts with dates in RFC 3339 format
 #	- Calendar API Concepts and Use Cases: https://developers.google.com/google-apps/calendar/concepts
@@ -76,5 +78,5 @@ def getEmail():
 	createConnection()
 	setUpCalendars()
 	return accessEmail()
-	
+
 

@@ -14,7 +14,7 @@ import time
 import imaplib
 import email
 
-#Work with other scripts
+# Work with other scripts
 import pull_email
 
 # Global variables for authentication
@@ -36,31 +36,29 @@ def create_connection():
 
     print "Succesfully Connected to Calendar and Inbox! \n"
 
-def access_calendar():
-    # Figure out what calendar the user has
-    feed = client.GetAllCalendarsFeed()
-    # print feed.title.text
+#retrieves email
+def check_email():
+    print pull_email.getEmail()
 
-    # # Grab that user's calendars
-    # for i, a_calendar in enumerate(feed.entry):
-    #     print '\t%s. %s' % (i, a_calendar.title.text)
+#NLP to detect events from email
+def parse_email(email_body):
+    # Parse is currently undefined by the different parameters that could be parsed for are:
+    # - title, conent, where, start_time, end_time. These will then be passed in order to insert a single
+    # event. RIght now there is currently no parse support for this.
+    return
 
-    # # Get calendar event's on a specific day/range
-    # start_date = '2013-10-31'
-    # end_date = '2013-11-29'
+# check_availability comments..
+def check_availability(start_date, end_date):
+    query = gdata.calendar.client.CalendarEventQuery()
+    query.start_min = start_date
+    query.start_max = end_date
 
-    # query = gdata.calendar.client.CalendarEventQuery()
-    # query.start_min = start_date
-    # query.start_max = end_date
+    print 'Grabbing events between %s -- %s' % (start_date, end_date)
+    feed = client.GetCalendarEventFeed(q=query)
+    for i, an_event in enumerate(feed.entry):
+        print '\t%s. %s' % (i, an_event.title.text)
+        print 'Begins at %s' % (str(an_event.when[0]))
 
-    # # Documentation on calendar events can be found at the following:
-    # # http://sourcecodebrowser.com/python-gdata/1.0.9/classgdata_1_1calendar_1_1_calendar_event_entry.html#a0ad621c0a499ab19727a136aa35d5ab7
-
-    # print 'Grabbing events between %s -- %s' % (start_date, end_date)
-    # feed = client.GetCalendarEventFeed(q=query)
-    # for i, an_event in enumerate(feed.entry):
-    #     print '\t%s. %s' % (i, an_event.title.text)
-    #     print 'Begins at %s' % (str(an_event.when[0]))
 
 # The loop that takes in an input and parses it and then executes the appropraite event
 # Currently called 'initiate loop', needs a better name but should work for basic implementation
@@ -77,11 +75,7 @@ def manual_input():
     # Send the request and receive the response
     new_event = client.InsertEvent(event)
 
-def parse():
-    # Parse is currently undefined by the different parameters that could be parsed for are:
-    # - title, conent, where, start_time, end_time. These will then be passed in order to insert a single
-    # event. RIght now there is currently no parse support for this.
-    return
+
 
 # Found here: https://developers.google.com/google-apps/calendar/v2/developers_guide_python#CreatingSingle
 #
@@ -111,13 +105,15 @@ def InsertSingleEvent(calendar_client=client,
 
     return new_event
 
-def check_email():
-    print pull_email.getEmail()
-
 def main():
     create_connection()
-    access_calendar()
     check_email()
+
+    # parse those emails
+
+    check_availability('2014-01-24', '2014-01-29')
+
+
 
 if __name__ == "__main__":
     main()

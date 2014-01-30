@@ -39,9 +39,17 @@ reg3 = re.compile(rel_day, re.IGNORECASE)
 reg4 = re.compile(iso)
 reg5 = re.compile(year)
 reg6 = re.compile(day)
-reg7 = re.compile(month)
+reg7 = re.compile(numbers)
 
+reg8 = re.compile(month, re.IGNORECASE)
+reg9 = re.compile(dmy)
+
+#Keep track of all the temporal words we have found
 timex_found = []
+date_object = []
+time_object = []
+month_object = []
+year_object = []
 
 def tag(text):
 
@@ -66,6 +74,7 @@ def tag(text):
     found = reg3.findall(text)
     for timex in found:
         timex_found.append(timex)
+        date_object.append(timex)
 
     # ISO
     found = reg4.findall(text)
@@ -76,16 +85,30 @@ def tag(text):
     found = reg5.findall(text)
     for timex in found:
         timex_found.append(timex)
+        year_object.append(timex)
 
     #day of week
     found = reg6.findall(text)
     for timex in found:
         timex_found.append(timex)
+        date_object.append(timex)
 
-    #month
+    #numbers
     found = reg7.findall(text)
     for timex in found:
         timex_found.append(timex)
+        time_object.append(timex)
+
+    #month 
+    found = reg8.findall(text)
+    for timex in found:
+        timex_found.append(timex)
+        month_object.append(timex)
+
+    found = reg9.findall(text)
+    for timex in found:
+        timex_found.append(timex)
+
 
 
     # Tag only temporal expressions which haven't been tagged.
@@ -364,10 +387,15 @@ def ground(tagged_text, base_date):
 
 ####
 
-def demo():
+def parse(text):
     import nltk
-    text = "three days from now is monday which is in may 2002 at 12:30"
-    print tag(text)
+    # text = "what are you doing today at four o'clock?"
+    tag(text)
+    # print "Day object found: " + str(date_object)
+    # print "Time object found: " + str(time_object)
+    # print "Month object found: " + str(month_object)
+    # print "Year object found: " + str(year_object)
 
-if __name__ == '__main__':
-    demo()
+    return time_object, date_object, month_object, year_object
+
+

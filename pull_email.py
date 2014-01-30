@@ -33,7 +33,8 @@ def createConnection():
 	mail.login(username+'@gmail.com', password)
 	mail.list()
 	mail.select("INBOX") # connect to inbox.
-	print "Succesfully Connected to Calendar and Inbox! \n"
+
+	print 'Successfully connected to email and calendar!'
 
 def setUpCalendars():
 	# Figure out what calendars that user has
@@ -57,9 +58,9 @@ def setUpCalendars():
 
 	print 'Grabbing events between %s -- %s' % (start_date, end_date)
 	feed = client.GetCalendarEventFeed(q=query)
-	for i, an_event in enumerate(feed.entry):
-		print '\t%s. %s' % (i, an_event.title.text)
-		print 'Begins at %s' % (str(an_event.when[0]))
+	# for i, an_event in enumerate(feed.entry):
+	# 	print '\t%s. %s' % (i, an_event.title.text)
+	# 	print 'Begins at %s' % (str(an_event.when[0]))
 
 #Returns the body of the most recent email
 def accessEmail():
@@ -72,7 +73,7 @@ def accessEmail():
 
 	#hack to find the text quickly, had trouble parsing MIME object
 	msg = raw_email.split("--")
-	return msg[2]
+	return msg[1] + msg[2]
 
 def getEmail():
 	createConnection()

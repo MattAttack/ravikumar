@@ -16,6 +16,7 @@ import email
 
 # Work with other scripts
 import pull_email
+import timex
 
 # Global variables for authentication
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')  # Dummy Google API Key
@@ -38,14 +39,12 @@ def create_connection():
 
 #retrieves email
 def check_email():
-    print pull_email.getEmail()
+    email_text = pull_email.getEmail()
+    return email_text
 
 #NLP to detect events from email
 def parse_email(email_body):
-    # Parse is currently undefined by the different parameters that could be parsed for are:
-    # - title, conent, where, start_time, end_time. These will then be passed in order to insert a single
-    # event. RIght now there is currently no parse support for this.
-    return
+    return timex.parse(email_body)
 
 # check_availability comments..
 def check_availability(start_date, end_date):
@@ -55,9 +54,9 @@ def check_availability(start_date, end_date):
 
     print 'Grabbing events between %s -- %s' % (start_date, end_date)
     feed = client.GetCalendarEventFeed(q=query)
-    for i, an_event in enumerate(feed.entry):
-        print '\t%s. %s' % (i, an_event.title.text)
-        print 'Begins at %s' % (str(an_event.when[0]))
+    # for i, an_event in enumerate(feed.entry):
+    #     print '\t%s. %s' % (i, an_event.title.text)
+    #     print 'Begins at %s' % (str(an_event.when[0]))
 
 
 # The loop that takes in an input and parses it and then executes the appropraite event
@@ -99,19 +98,18 @@ def InsertSingleEvent(calendar_client=client,
 
     new_event = calendar_client.InsertEvent(event)
 
-    print 'New single event inserted: %s' % (new_event.id.text,)
-    print '\tEvent edit URL: %s' % (new_event.GetEditLink().href,)
-    print '\tEvent HTML URL: %s' % (new_event.GetHtmlLink().href,)
+    # print 'New single event inserted: %s' % (new_event.id.text,)
+    # print '\tEvent edit URL: %s' % (new_event.GetEditLink().href,)
+    # print '\tEvent HTML URL: %s' % (new_event.GetHtmlLink().href,)
 
     return new_event
 
 def main():
-    create_connection()
-    check_email()
-
-    # parse those emails
-
-    check_availability('2014-01-24', '2014-01-29')
+    # create_connection()
+    email_body = check_email()
+    print parse_email(email_body)
+    
+    # check_availability('2014-01-24', '2014-01-29')
 
 
 

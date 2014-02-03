@@ -44,11 +44,18 @@ def accessEmail():
 	id_list = ids.split() # ids is a space separated string
 	latest_email_id = id_list[-1] # get the latest
 	result, data = mail.fetch(latest_email_id, "(RFC822)") # fetch the email body (RFC822) for the given ID
-	raw_email = data[0][1] #this variable is an "email" object
 
-	#hack to find the text quickly, had trouble parsing MIME object
-	msg = raw_email.split("--")
-	return msg[0]
+
+	raw_email = data[0][1] #this variable is an "email" object
+	em = email.message_from_string(raw_email)
+
+	body = em._payload
+	print "Email Body:"
+	print body
+
+
+	return body
+
 
 def getEmail():
 	createConnection()

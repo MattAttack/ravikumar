@@ -52,8 +52,6 @@ def accessEmail():
 	body = em._payload
 	print "Email Body:"
 	print body
-
-
 	return body
 
 

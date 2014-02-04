@@ -49,7 +49,11 @@ def accessEmail():
 	raw_email = data[0][1] #this variable is an "email" object
 	em = email.message_from_string(raw_email)
 
-	body = em._payload
+	if isinstance(em._payload, list):
+		body = em._payload[0]._payload
+	else:
+		body = em._payload
+
 	print "Email Body:"
 	print body
 	return body

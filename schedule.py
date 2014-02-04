@@ -9,6 +9,7 @@ import gdata.calendar.client
 import gdata.acl.data
 import atom.data
 import time
+from time import gmtime, strftime
 
 # Email Connection
 import imaplib
@@ -44,7 +45,37 @@ def check_email():
 
 #NLP to detect events from email
 def parse_email(email_body):
-    return timex.parse(email_body)
+    # the desired time format is: %Y-%m-%DT%H:%M:%S
+
+    #t is an array of relative time objects, time objects, day_objects, month objects, and year objects detected in text
+    t = timex.parse(email_body)
+    
+    def findYear(t):
+        print "Year: " + str(t[0])
+
+    def findMonth(t):
+        print "Month: "+ str(t[1])
+            
+    def findDay(t):
+        print "Day: "+ str(t[2])
+
+    def findHour(t):
+        print "Hour: " +str(t[3])
+
+    def findMinute(t):
+        print "Minute: "+ str(t[4])
+
+    def findSecond(t):
+        print "Second: " + str(t[5])
+
+
+    findYear(t)
+    findMonth(t)
+    findDay(t)
+    findHour(t)
+    findMinute(t)
+    findSecond(t)
+
 
 # check_availability comments..
 def check_availability(start_date, end_date):
@@ -75,6 +106,11 @@ def manual_input():
     new_event = client.InsertEvent(event)
 
 
+def findConflicts(t):
+    print ""
+    
+
+
 
 # Found here: https://developers.google.com/google-apps/calendar/v2/developers_guide_python#CreatingSingle
 #
@@ -89,28 +125,21 @@ def InsertSingleEvent(calendar_client=client,
     event.title = atom.data.Title(text=title)
     event.content = atom.data.Content(text=content)
     event.where.append(gdata.calendar.data.CalendarWhere(value=where))
-
     if start_time is None:
       # Use current time for the start_time and have the event last 1 hour
       start_time = time.strftime('%Y-%m-%dT%H:%M:%S.000Z', time.gmtime())
       end_time = time.strftime('%Y-%m-%dT%H:%M:%S.000Z', time.gmtime(time.time() + 3600))
     event.when.append(gdata.calendar.data.When(start=start_time, end=end_time))
-
+    print start_time, end_time
     new_event = calendar_client.InsertEvent(event)
-
     # print 'New single event inserted: %s' % (new_event.id.text,)
     # print '\tEvent edit URL: %s' % (new_event.GetEditLink().href,)
     # print '\tEvent HTML URL: %s' % (new_event.GetHtmlLink().href,)
-
     return new_event
-
 def main():
     # create_connection()
     email_body = check_email()
-    print parse_email(email_body)
-    
-    # check_availability('2014-01-24', '2014-01-29')
-
+    parse_email(email_body)
 
 
 if __name__ == "__main__":

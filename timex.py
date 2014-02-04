@@ -5,7 +5,7 @@ import re
 import string
 import os
 import sys
-
+from time import gmtime, strftime
 # Requires eGenix.com mx Base Distribution
 # http://www.egenix.com/products/python/mxBase/
 try:
@@ -15,132 +15,189 @@ except ImportError:
 Requires eGenix.com mx Base Distribution
 http://www.egenix.com/products/python/mxBase/"""
 
+
+
 # Predefined strings.
 #
 # Modified to have a lookahead and lookbehind. Lookahead is (?=\W|$) and lookbehind is (?<!\w).
-numbers = "(^a(?=\s)(?=\W|$)|(?<!\w)one(?=\W|$)|(?<!\w)two(?=\W|$)|(?<!\w)three(?=\W|$)|(?<!\w)four(?=\W|$)|(?<!\w)five(?=\W|$)|(?<!\w)six(?=\W|$)|(?<!\w)seven(?=\W|$)|(?<!\w)eight(?=\W|$)|(?<!\w)nine(?=\W|$)|(?<!\w)ten(?=\W|$)|(?<!\w)eleven(?=\W|$)|(?<!\w)twelve(?=\W|$)|(?<!\w)thirteen(?=\W|$)|(?<!\w)fourteen(?=\W|$)|(?<!\w)fifteen(?=\W|$)|(?<!\w)sixteen(?=\W|$)|(?<!\w)seventeen(?=\W|$)|(?<!\w)eighteen(?=\W|$)|(?<!\w)nineteen(?=\W|$)|(?<!\w)twenty(?=\W|$)|(?<!\w)thirty(?=\W|$)|(?<!\w)forty(?=\W|$)|(?<!\w)fifty(?=\W|$)|(?<!\w)sixty(?=\W|$)|(?<!\w)seventy(?=\W|$)|(?<!\w)eighty(?=\W|$)|(?<!\w)ninety(?=\W|$)|(?<!\w)hundred(?=\W|$)|(?<!\w)thousand(?=\W|$))"
-day = "((?<!\w)monday(?=\W|$)|(?<!\w)tuesday(?=\W|$)|(?<!\w)wednesday(?=\W|$)|(?<!\w)thursday(?=\W|$)|(?<!\w)friday(?=\W|$)|(?<!\w)saturday(?=\W|$)|(?<!\w)sunday(?=\W|$))"
-week_day = "((?<!\w)monday(?=\W|$)|(?<!\w)tuesday(?=\W|$)|(?<!\w)wednesday(?=\W|$)|(?<!\w)thursday(?=\W|$)|(?<!\w)friday(?=\W|$)|(?<!\w)saturday(?=\W|$)|(?<!\w)sunday(?=\W|$))"
-month = "((?<!\w)january(?=\W|$)|(?<!\w)february(?=\W|$)|(?<!\w)march(?=\W|$)|(?<!\w)april(?=\W|$)|(?<!\w)may(?=\W|$)|(?<!\w)june(?=\W|$)|(?<!\w)july(?=\W|$)|(?<!\w)august(?=\W|$)|(?<!\w)september(?=\W|$)|(?<!\w)october(?=\W|$)|(?<!\w)november(?=\W|$)|(?<!\w)december(?=\W|$))"
-dmy = "((?<!\w)year(?=\W|$)|(?<!\w)day(?=\W|$)|(?<!\w)week(?=\W|$)|(?<!\w)month(?=\W|$))"
-rel_day = "((?<!\w)today(?=\W|$)|(?<!\w)yesterday(?=\W|$)|(?<!\w)tomorrow(?=\W|$)|(?<!\w)tonight(?=\W|$)|(?<!\w)tonite(?=\W|$))"
-exp1 = "((?<!\w)before(?=\W|$)|(?<!\w)after(?=\W|$)|(?<!\w)earlier(?=\W|$)|(?<!\w)later(?=\W|$)|(?<!\w)ago(?=\W|$))"
-exp2 = "((?<!\w)this(?=\W|$)|(?<!\w)next(?=\W|$)|(?<!\w)last(?=\W|$))"
-iso = "\d+[/-]\d+[/-]\d+ \d+:\d+:\d+\.\d+"
+
+#not being used
+# exp1 = "((?<!\w)before(?=\W|$)|(?<!\w)after(?=\W|$)|(?<!\w)earlier(?=\W|$)|(?<!\w)later(?=\W|$)|(?<!\w)ago(?=\W|$))"
+# exp2 = "((?<!\w)this(?=\W|$)|(?<!\w)next(?=\W|$)|(?<!\w)last(?=\W|$))"
+# iso = "\d+[/-]\d+[/-]\d+ \d+:\d+:\d+\.\d+"
+# regxp1 = "((\d+(?=\W|$)|(?<!\w)(" + numbers + "[-\s]?)+) " + dmy + "s? " + exp1 + ")"
+# regxp2 = "(" + exp2 + " (" + dmy + "(?=\W|$)|(?<!\w)" + week_day + "(?=\W|$)|(?<!\w)" + month + "))"
+# dmy = "((?<!\w)year(?=\W|$)|(?<!\w)day(?=\W|$)|(?<!\w)week(?=\W|$)|(?<!\w)month(?=\W|$))"
+
+
+#year
 year = "((?<=\s)\d{4}(?=\W|$)|(?<!\w)^\d{4})"
-regxp1 = "((\d+(?=\W|$)|(?<!\w)(" + numbers + "[-\s]?)+) " + dmy + "s? " + exp1 + ")"
-regxp2 = "(" + exp2 + " (" + dmy + "(?=\W|$)|(?<!\w)" + week_day + "(?=\W|$)|(?<!\w)" + month + "))"
+reg1 = re.compile(year, re.IGNORECASE)
 
-reg1 = re.compile(regxp1, re.IGNORECASE)
-reg2 = re.compile(regxp2, re.IGNORECASE)
-reg3 = re.compile(rel_day, re.IGNORECASE)
-reg4 = re.compile(iso)
-reg5 = re.compile(year)
-reg6 = re.compile(day)
-reg7 = re.compile(numbers)
+#month
+month = "((?<!\w)january(?=\W|$)|(?<!\w)february(?=\W|$)|(?<!\w)march(?=\W|$)|(?<!\w)april(?=\W|$)|(?<!\w)may(?=\W|$)|(?<!\w)june(?=\W|$)|(?<!\w)july(?=\W|$)|(?<!\w)august(?=\W|$)|(?<!\w)september(?=\W|$)|(?<!\w)october(?=\W|$)|(?<!\w)november(?=\W|$)|(?<!\w)december(?=\W|$))"
+reg2 = re.compile(month, re.IGNORECASE)
 
-reg8 = re.compile(month, re.IGNORECASE)
-reg9 = re.compile(dmy)
+#day
+day = "((?<!\w)monday(?=\W|$)|(?<!\w)tuesday(?=\W|$)|(?<!\w)wednesday(?=\W|$)|(?<!\w)thursday(?=\W|$)|(?<!\w)friday(?=\W|$)|(?<!\w)saturday(?=\W|$)|(?<!\w)sunday(?=\W|$))"
+rel_days = "((?<!\w)today(?=\W|$)|(?<!\w)tomorrow(?=\W|$)|(?<!\w)tonight(?=\W|$)|(?<!\w)tonite(?=\W|$))"
+week_day = "((?<!\w)monday(?=\W|$)|(?<!\w)tuesday(?=\W|$)|(?<!\w)wednesday(?=\W|$)|(?<!\w)thursday(?=\W|$)|(?<!\w)friday(?=\W|$)|(?<!\w)saturday(?=\W|$)|(?<!\w)sunday(?=\W|$))"
+reg3 = re.compile(day, re.IGNORECASE)
+reg4 = re.compile(rel_days, re.IGNORECASE)
+
+#hour
+rel_hours = "((?<!\w)morning(?=\W|$)|(?<!\w)today(?=\W|$)|(?<!\w)tonight(?=\W|$)|(?<!\w)tonite(?=\W|$)|(?<!\w)noon(?=\W|$)|(?<!\w)night(?=\W|$))"
+numbers = "(^a(?=\s)(?=\W|$)|(?<!\w)one(?=\W|$)|(?<!\w)two(?=\W|$)|(?<!\w)three(?=\W|$)|(?<!\w)four(?=\W|$)|(?<!\w)five(?=\W|$)|(?<!\w)six(?=\W|$)|(?<!\w)seven(?=\W|$)|(?<!\w)eight(?=\W|$)|(?<!\w)nine(?=\W|$)|(?<!\w)ten(?=\W|$)|(?<!\w)eleven(?=\W|$)|(?<!\w)twelve(?=\W|$))"
+reg5 = re.compile(rel_hours, re.IGNORECASE)
+reg6 = re.compile(numbers, re.IGNORECASE)
+
+hashweekdays = {
+        'mon': 0,
+        'tue': 1,
+        'wed': 2,
+        'thu': 3,
+        'fri': 4,
+        'sat': 5,
+        'sun': 6}
+
+
+    # Hash function for months to simplify the grounding task.
+    # [Jan..Dec] -> [1..12]
+hashmonths = {
+        'january': 1,
+        'february': 2,
+        'march': 3,
+        'april': 4,
+        'may': 5,
+        'june': 6,
+        'july': 7,
+        'august': 8,
+        'september': 9,
+        'october': 10,
+        'november': 11,
+        'december': 12}
+
+#Info about right now
+currentYear = int(strftime("%Y"))
+currentMonth = int(strftime("%m"))
+currentDay = int(strftime("%d"))
+currentDayofWeek = int(hashweekdays[strftime("%a").lower()])
+currentHour = int(strftime("%H"))
+currentMinute = int(strftime("%M"))
+currentSecond = int(0)
+
+
+relHours = {
+    'today':currentHour,
+    'noon':12,
+    'tonight':20,
+    'tonite':20,
+    'morning':9,
+    'night':20
+}
+
+relDays = {
+    'today':currentDay,
+    'tomorrow':str(int(currentDay)+1),
+    'tonight':currentDay,
+    'tonite':currentDay
+}
+
+# array we will use to store date objects
+days = [0]*7
+
 
 #Keep track of all the temporal words we have found
 timex_found = []
-date_object = []
-time_object = []
-month_object = []
+
 year_object = []
+month_object = []
+day_object = [] #returns a number which represents which date in a month, IE: 31 = march 31st
+hour_object = [] 
+minute_object = []
+second_object = []
 
+
+
+
+#searches text for relevant fields, if no fields are found, current time field(s) are returned
 def tag(text):
+    
+    def findYear(text):
+        found = reg1.findall(text)
+        for timex in found:
+            year_object.append(str(timex))
 
-    # Initialization
-    # timex_found = []
+        if not year_object:
+            year_object.append(str(currentYear))
+        
+        return year_object
 
-    # re.findall() finds all the substring matches, keep only the full
-    # matching string. Captures expressions such as 'number of days' ago, etc.
-    found = reg1.findall(text)
-    found = [a[0] for a in found if len(a) > 1]
-    for timex in found:
-        timex_found.append(timex)
+    def findMonth(text):
+        found = reg2.findall(text)
+        for timex in found:
+            cTimex = hashmonths[timex]
+            month_object.append(str(cTimex))
+        if not month_object:
+            month_object.append(str(currentMonth))
+        return month_object
 
-    # Variations of this thursday, next year, etc
-    found = reg2.findall(text)
-    found = [a[0] for a in found if len(a) > 1]
-    for timex in found:
-        print timex
-        timex_found.append(timex)
+    def findDay(text):
+        found = reg3.findall(text)
+        for timex in found:
+            cTimex = hashweekdays[timex[0:3].lower()]
+            cTimex = days[cTimex]
+            day_object.append(str(cTimex))
 
-    # today, tomorrow, etc
-    found = reg3.findall(text)
-    for timex in found:
-        timex_found.append(timex)
-        date_object.append(timex)
+        found = reg4.findall(text)
+        for timex in found:
+            cTimex = relDays[timex.lower()]
+            day_object.append(str(cTimex))
+        if not day_object:
+            day_object.append(str(currentDay))
+        return day_object
 
-    # ISO
-    found = reg4.findall(text)
-    for timex in found:
-        timex_found.append(timex)
+    def findHour(text):
+        found = reg5.findall(text)
+        for timex in found:
+            cTimex = relHours[timex.lower()]
+            hour_object.append(str(cTimex))
 
-    # Year
-    found = reg5.findall(text)
-    for timex in found:
-        timex_found.append(timex)
-        year_object.append(timex)
+        found = reg6.findall(text)
+        for timex in found:
+            cTimex = hashnum(timex)
+            hour_object.append(str(cTimex))
+        if not hour_object:
+            hour_object.append(str(currentHour))
+        return hour_object
 
-    #day of week
-    found = reg6.findall(text)
-    for timex in found:
-        timex_found.append(timex)
-        date_object.append(timex)
+    def findMin(text):
+        minute_object.append("00")
+        return minute_object
 
-    #numbers
-    found = reg7.findall(text)
-    for timex in found:
-        timex_found.append(timex)
-        time_object.append(timex)
+    def findSecond(text):
+        second_object.append("00")
+        return second_object
 
-    #month
-    found = reg8.findall(text)
-    for timex in found:
-        timex_found.append(timex)
-        month_object.append(timex)
-
-    found = reg9.findall(text)
-    for timex in found:
-        timex_found.append(timex)
-
-
-
-    # Tag only temporal expressions which haven't been tagged.
-    for timex in timex_found:
-        text = re.sub(timex + '(?!</TIMEX2>)', '<TIMEX2>' + timex + '</TIMEX2>', text)
-
-    return text
+    return [findYear(text),findMonth(text),findDay(text),findHour(text),findMin(text),findSecond(text)]
 
 # Hash function for week days to simplify the grounding task.
 # [Mon..Sun] -> [0..6]
-hashweekdays = {
-    'Monday': 0,
-    'Tuesday': 1,
-    'Wednesday': 2,
-    'Thursday': 3,
-    'Friday': 4,
-    'Saturday': 5,
-    'Sunday': 6}
 
-# Hash function for months to simplify the grounding task.
-# [Jan..Dec] -> [1..12]
-hashmonths = {
-    'January': 1,
-    'February': 2,
-    'March': 3,
-    'April': 4,
-    'May': 5,
-    'June': 6,
-    'July': 7,
-    'August': 8,
-    'September': 9,
-    'October': 10,
-    'November': 11,
-    'December': 12}
+def prepareHashMaps():
+
+    #fill in the days earlier in the week
+    tempDay = currentDay
+    for i in range(currentDayofWeek,0,-1):
+            days[i] = tempDay
+            tempDay-=1
+
+    #fill in the days later in the week
+    tempDay = currentDay
+    for i in range(currentDayofWeek,7,1):
+        days[i] = tempDay
+        tempDay += 1
+
 
 # Hash number in words into the corresponding integer value
 def hashnum(number):
@@ -386,14 +443,16 @@ def ground(tagged_text, base_date):
 ####
 
 def parse(text):
-    import nltk
-    # text = "what are you doing today at four o'clock?"
-    tag(text)
-    # print "Day object found: " + str(date_object)
+    prepareHashMaps()
+    return tag(text)
+    # print "Day object found: " + str(day_object)
     # print "Time object found: " + str(time_object)
     # print "Month object found: " + str(month_object)
     # print "Year object found: " + str(year_object)
 
-    return time_object, date_object, month_object, year_object
+    # return rel_object,time_object, day_object, month_object, year_object
+
+parse("lets twenty")
+
 
 

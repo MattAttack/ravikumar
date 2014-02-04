@@ -136,7 +136,7 @@ def tag(text):
     def findMonth(text):
         found = reg2.findall(text)
         for timex in found:
-            cTimex = hashmonths[timex]
+            cTimex = hashmonths[timex.lower()]
             month_object.append(str(cTimex))
         if not month_object:
             month_object.append(str(currentMonth))
@@ -187,10 +187,10 @@ def tag(text):
 def prepareHashMaps():
 
     #fill in the days earlier in the week
-    tempDay = currentDay
-    for i in range(currentDayofWeek,0,-1):
-            days[i] = tempDay
-            tempDay-=1
+    tempSum = 6
+    for i in range(currentDayofWeek-1,-1,-1):
+            days[i] = currentDay+tempSum
+            tempSum-=1
 
     #fill in the days later in the week
     tempDay = currentDay
@@ -452,7 +452,7 @@ def parse(text):
 
     # return rel_object,time_object, day_object, month_object, year_object
 
-parse("lets twenty")
+print parse("Let's meet next thursday at night?")
 
 
 

@@ -41,6 +41,7 @@ def create_connection():
 #retrieves email
 def check_email():
     email_text = pull_email.getEmail()
+    print "Email text: \n" + email_text
     return email_text
 
 #NLP to detect events from email
@@ -49,7 +50,7 @@ def parse_email(email_body):
 
     #t is an array of relative time objects, time objects, day_objects, month objects, and year objects detected in text
     t = timex.parse(email_body)
-    
+
     def findYear(t):
         print "Year: " + str(t[0])
 

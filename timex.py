@@ -452,7 +452,7 @@ def parse(text):
 
     # return rel_object,time_object, day_object, month_object, year_object
 
-print parse("Let's meet next thursday at night?")
+
 
 
 

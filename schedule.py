@@ -146,7 +146,7 @@ def time_object(year, month, day, hour, minute, second):
     minute = "%02d" % int(minute)
     second = "%02d" % int(second)
 
-    return '%s-%s-%sT%s:%s:%s.000Z' % (year, month, day, hour, minute, second)
+    return '%s-%s-%sT%s:%s:%s-06:00' % (year, month, day, hour, minute, second)
 
 def main():
     create_connection()

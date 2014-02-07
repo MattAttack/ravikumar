@@ -19,6 +19,9 @@ import email
 import pull_email
 import timex
 
+# Debugging
+import pdb
+
 # Global variables for authentication
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')  # Dummy Google API Key
 mail = imaplib.IMAP4_SSL('imap.gmail.com')
@@ -56,7 +59,7 @@ def parse_email(email_body):
 
     def findMonth(t):
         print "Month: "+ str(t[1])
-            
+
     def findDay(t):
         print "Day: "+ str(t[2])
 
@@ -69,13 +72,10 @@ def parse_email(email_body):
     def findSecond(t):
         print "Second: " + str(t[5])
 
+    print "Parsed entities: Y:%s M:%s D:%s H:%s M:%s S:%s" % (t[0], t[1], t[2], t[3], t[4], t[5])
+    return t
 
-    findYear(t)
-    findMonth(t)
-    findDay(t)
-    findHour(t)
-    findMinute(t)
-    findSecond(t)
+
 
 
 # check_availability comments..
@@ -107,9 +107,10 @@ def manual_input():
     new_event = client.InsertEvent(event)
 
 
-def findConflicts(t):
-    print ""
-    
+# Check for calendar conflicts.
+def findConflicts(t, duration):
+    print "Checking for conflicts on the calendar."
+
 
 
 
@@ -133,14 +134,37 @@ def InsertSingleEvent(calendar_client=client,
     event.when.append(gdata.calendar.data.When(start=start_time, end=end_time))
     print start_time, end_time
     new_event = calendar_client.InsertEvent(event)
-    # print 'New single event inserted: %s' % (new_event.id.text,)
-    # print '\tEvent edit URL: %s' % (new_event.GetEditLink().href,)
-    # print '\tEvent HTML URL: %s' % (new_event.GetHtmlLink().href,)
+    print 'New single event inserted: %s' % (new_event.id.text,)
+    print '\tEvent edit URL: %s' % (new_event.GetEditLink().href,)
+    print '\tEvent HTML URL: %s' % (new_event.GetHtmlLink().href,)
     return new_event
+
+def time_object(year, month, day, hour, minute, second):
+    month = "%02d" % int(month)
+    day = "%02d" % int(day)
+    hour = "%02d" % int(hour)
+    minute = "%02d" % int(minute)
+    second = "%02d" % int(second)
+
+    return '%s-%s-%sT%s:%s:%s.000Z' % (year, month, day, hour, minute, second)
+
 def main():
-    # create_connection()
+    create_connection()
     email_body = check_email()
-    parse_email(email_body)
+    parsed = parse_email(email_body)
+
+    should_schedule = raw_input("Would you like to schedule an event? ")
+    if (should_schedule[0] == 'y' or should_schedule[0] == 'Y'):
+        event_name = raw_input('Name of the event: ')
+
+        print "Scheduling an event now.."
+
+        # Create start and end time (currently defaults to one hour ahead)
+        start_time = time_object(parsed[0][0], parsed[1][0], parsed[2][0], parsed[3][0], parsed[4][0], parsed[5][0])
+        end_time = time_object(parsed[0][0], parsed[1][0], parsed[2][0], str(int(parsed[3][0]) + 1), parsed[4][0], parsed[5][0])
+
+        InsertSingleEvent(client, event_name, None, None, start_time, end_time)
+
 
 
 if __name__ == "__main__":

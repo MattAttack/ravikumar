@@ -108,8 +108,20 @@ def manual_input():
 
 
 # Check for calendar conflicts.
-def findConflicts(t, duration):
-    print "Checking for conflicts on the calendar."
+def findConflicts(start_date, end_date):
+    # Construct the calendar query
+    query = gdata.calendar.client.CalendarEventQuery()
+    query.start_min = start_date
+    query.start_max = end_date
+
+    print
+    print 'Grabbing events between %s -- %s' % (start_date, end_date)
+    feed = client.GetCalendarEventFeed(q=query)
+    for i, an_event in enumerate(feed.entry):   # Go over the calendar and pring out the events
+        print '\t%s. %s' % (i, an_event.title.text)
+
+    # TODO: Modify to return the events if needed
+    print
 
 
 
@@ -139,6 +151,8 @@ def InsertSingleEvent(calendar_client=client,
     print '\tEvent HTML URL: %s' % (new_event.GetHtmlLink().href,)
     return new_event
 
+# Takes the entities and constructs them appropriately in the format
+# google's API accepts and likes
 def time_object(year, month, day, hour, minute, second):
     month = "%02d" % int(month)
     day = "%02d" % int(day)
@@ -149,20 +163,27 @@ def time_object(year, month, day, hour, minute, second):
     return '%s-%s-%sT%s:%s:%s-06:00' % (year, month, day, hour, minute, second)
 
 def main():
-    create_connection()
+    create_connection()                 # need to connect to calendar now
     email_body = check_email()
     parsed = parse_email(email_body)
 
+    # TODO:? Possibly ask the user for missing information
+
+    # Create start and end time (currently defaults to one hour ahead)
+    # the first element in each is assumed to be the once you want
+    start_time = time_object(parsed[0][0], parsed[1][0], parsed[2][0], parsed[3][0], parsed[4][0], parsed[5][0])
+    end_time = time_object(parsed[0][0], parsed[1][0], parsed[2][0], str(int(parsed[3][0]) + 1), parsed[4][0], parsed[5][0])
+
+    # Show the conflicts
+    findConflicts(start_time, end_time)
+
+    # Prompt the user to schedule an event
     should_schedule = raw_input("Would you like to schedule an event? ")
     if (should_schedule[0] == 'y' or should_schedule[0] == 'Y'):
-        event_name = raw_input('Name of the event: ')
+        event_name = raw_input('Name of the event: ')       # The event needs some name
 
+        # Uses the function that Google provided to schedule the event
         print "Scheduling an event now.."
-
-        # Create start and end time (currently defaults to one hour ahead)
-        start_time = time_object(parsed[0][0], parsed[1][0], parsed[2][0], parsed[3][0], parsed[4][0], parsed[5][0])
-        end_time = time_object(parsed[0][0], parsed[1][0], parsed[2][0], str(int(parsed[3][0]) + 1), parsed[4][0], parsed[5][0])
-
         InsertSingleEvent(client, event_name, None, None, start_time, end_time)
 
 

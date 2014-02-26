@@ -9,6 +9,9 @@ import gdata.calendar.client
 import gdata.acl.data
 import atom.data
 import time
+import datetime
+from dateutil import parser
+
 from time import gmtime, strftime
 
 # Email Connection
@@ -123,7 +126,7 @@ def findConflicts(start_date, end_date):
     # TODO: Modify to return the events if needed
     print
 
-
+    return feed.entry
 
 
 # Found here: https://developers.google.com/google-apps/calendar/v2/developers_guide_python#CreatingSingle
@@ -162,31 +165,64 @@ def time_object(year, month, day, hour, minute, second):
 
     return '%s-%s-%sT%s:%s:%s-06:00' % (year, month, day, hour, minute, second)
 
+def prompt_user_for_time(parsed, duration):
+    day_start_str = time_object(parsed[0][0], parsed[1][0], parsed[2][0], 0, 0, 0)
+    day_end_str   = time_object(parsed[0][0], parsed[1][0], parsed[2][0], 23, 59, 59)
+    day_start_time = parser.parse(day_start_str)
+    day_end_time = parser.parse(day_end_str)
+
+    possible_times = []             # Generate a list of all the possible times that day
+    while (day_start_time < day_end_time):
+        possible_time = (day_start_time, day_start_time + datetime.timedelta(minutes=duration))   # Duration will be an hour
+        possible_times.append(possible_time)
+        day_start_time = day_start_time + datetime.timedelta(minutes=30)
+
+    # Filter out the times that are not valid
+    for e_conflict in findConflicts(day_start_str, day_end_str):
+        conflict_start = parser.parse(e_conflict.when[0].start)
+        conflict_end   = parser.parse(e_conflict.when[0].end)
+
+        possible_times = filter(lambda time: (time[1] <= conflict_start or conflict_end <= time[0]), possible_times)
+
+    # Print out the possible times, with an associated index
+    print 'Please select a start time for your event: '
+    for i, possible_time in enumerate(possible_times):
+        print '%02d :: %s' % (i, possible_time[0])
+
+
+    print               # Prompt user for a selection
+    user_selection = int(input("Please select the most optimal time: "))
+    print 'The user selected the following time: %s' % possible_times[user_selection][0]
+    return possible_times[user_selection]
+
+
 def main():
     create_connection()                 # need to connect to calendar now
     email_body = check_email()
     parsed = parse_email(email_body)
 
-    # TODO:? Possibly ask the user for missing information
-
-    # Create start and end time (currently defaults to one hour ahead)
-    # the first element in each is assumed to be the once you want
-    start_time = time_object(parsed[0][0], parsed[1][0], parsed[2][0], parsed[3][0], parsed[4][0], parsed[5][0])
-    end_time = time_object(parsed[0][0], parsed[1][0], parsed[2][0], str(int(parsed[3][0]) + 1), parsed[4][0], parsed[5][0])
-
-    # Show the conflicts
-    findConflicts(start_time, end_time)
-
     # Prompt the user to schedule an event
     should_schedule = raw_input("Would you like to schedule an event? ")
     if (should_schedule[0] == 'y' or should_schedule[0] == 'Y'):
         event_name = raw_input('Name of the event: ')       # The event needs some name
+        event_duration = int(raw_input('Duration of the event (minutes): '))
 
-        # Uses the function that Google provided to schedule the event
         print "Scheduling an event now.."
-        InsertSingleEvent(client, event_name, None, None, start_time, end_time)
-
-
+        if len(parsed[3]) == 1:
+            possible_time = prompt_user_for_time(parsed, event_duration)
+            pdb.set_trace()
+            InsertSingleEvent(client,
+                              event_name,
+                              None,
+                              None,
+                              possible_time[0].strftime("%Y-%m-%dT%H:%M:%S") + "-06:00", # This is hacky. %:z gives me what I want
+                              possible_time[1].strftime("%Y-%m-%dT%H:%M:%S") + "-06:00"  # but I was unable to get it to work
+                              )
+        else:
+            start_time = time_object(parsed[0][0], parsed[1][0], parsed[2][0], parsed[3][0], parsed[4][0], parsed[5][0])
+            pdb.set_trace()
+            end_time = time_object(parsed[0][0], parsed[1][0], parsed[2][0], str(int(parsed[3][0]) + 1), parsed[4][0], parsed[5][0])
+            InsertSingleEvent(client, event_name, None, None, start_time, end_time)
 
 if __name__ == "__main__":
     main()

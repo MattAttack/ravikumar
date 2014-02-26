@@ -187,7 +187,7 @@ def prompt_user_for_time(parsed, duration):
     # Print out the possible times, with an associated index
     print 'Please select a start time for your event: '
     for i, possible_time in enumerate(possible_times):
-        print '%02d :: %s' % (i, possible_time[0])
+        print '%02d :: %s - %s' % (i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
 
 
     print               # Prompt user for a selection

@@ -14,6 +14,9 @@ from dateutil import parser
 
 from time import gmtime, strftime
 
+# Keeping track of data
+import pickle
+
 # Email Connection
 import imaplib
 import email
@@ -165,7 +168,13 @@ def time_object(year, month, day, hour, minute, second):
 
     return '%s-%s-%sT%s:%s:%s-06:00' % (year, month, day, hour, minute, second)
 
-def prompt_user_for_time(parsed, duration):
+# Prompts user for a time by checking the parsed information
+# and asking what time works best, currently only selects the best hour
+def prompt_user_for_time(parsed, duration, email_body):
+    # Load saved information from past decision
+    past_decisions = pickle.load(open("save.p", "rb"))
+
+
     day_start_str = time_object(parsed[0][0], parsed[1][0], parsed[2][0], 0, 0, 0)
     day_end_str   = time_object(parsed[0][0], parsed[1][0], parsed[2][0], 23, 59, 59)
     day_start_time = parser.parse(day_start_str)
@@ -193,6 +202,12 @@ def prompt_user_for_time(parsed, duration):
     print               # Prompt user for a selection
     user_selection = int(input("Please select the most optimal time: "))
     print 'The user selected the following time: %s' % possible_times[user_selection][0]
+
+    # Save the new decision. Saved in (choices, decision, email_body) triples.
+    new_decision = (possible_times, possible_times[user_selection], email_body)
+    past_decisions.append(new_decision)
+    pickle.dump(past_decisions, open("save.p", "wb"))
+
     return possible_times[user_selection]
 
 
@@ -208,8 +223,8 @@ def main():
         event_duration = int(raw_input('Duration of the event (minutes): '))
 
         print "Scheduling an event now.."
-        if len(parsed[3]) == 1:
-            possible_time = prompt_user_for_time(parsed, event_duration)
+        if len(parsed[3]) == 1:     # Unclear hour, this assumes definite date
+            possible_time = prompt_user_for_time(parsed, event_duration, email_body)
             pdb.set_trace()
             InsertSingleEvent(client,
                               event_name,
@@ -218,9 +233,8 @@ def main():
                               possible_time[0].strftime("%Y-%m-%dT%H:%M:%S") + "-06:00", # This is hacky. %:z gives me what I want
                               possible_time[1].strftime("%Y-%m-%dT%H:%M:%S") + "-06:00"  # but I was unable to get it to work
                               )
-        else:
+        else:           # Otherwise schedule, defaults to a duration of 1 hour
             start_time = time_object(parsed[0][0], parsed[1][0], parsed[2][0], parsed[3][0], parsed[4][0], parsed[5][0])
-            pdb.set_trace()
             end_time = time_object(parsed[0][0], parsed[1][0], parsed[2][0], str(int(parsed[3][0]) + 1), parsed[4][0], parsed[5][0])
             InsertSingleEvent(client, event_name, None, None, start_time, end_time)
 

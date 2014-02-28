@@ -58,7 +58,7 @@ def parse_email(email_body):
     # the desired time format is: %Y-%m-%DT%H:%M:%S
 
     #t is an array of relative time objects, time objects, day_objects, month objects, and year objects detected in text
-    t = timex.parse(email_body)
+    t,email_text = timex.parse(email_body)
 
     def findYear(t):
         print "Year: " + str(t[0])
@@ -79,7 +79,7 @@ def parse_email(email_body):
         print "Second: " + str(t[5])
 
     print "Parsed entities: Y:%s M:%s D:%s H:%s M:%s S:%s" % (t[0], t[1], t[2], t[3], t[4], t[5])
-    return t
+    return t, email_text
 
 # Checks for calendar conflicts between the start date and the end date
 # Returns a list of those conflicts
@@ -207,13 +207,13 @@ def schedule_event(email_body, parsed):
 def main():
     create_connection()                 # need to connect to calendar now
     email_body = check_email()
-    parsed = parse_email(email_body)
+    parsed, email_text  = parse_email(email_body)
 
     # Prompt the user to schedule an event
     should_schedule = raw_input("Would you like to schedule an event? ")
 
     if (should_schedule[0] == 'y' or should_schedule[0] == 'Y'):
-        schedule_event(email_body, parsed)
+        schedule_event(email_text, parsed)
 
 if __name__ == "__main__":
     main()

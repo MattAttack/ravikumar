@@ -6,6 +6,7 @@ import string
 import os
 import sys
 from time import gmtime, strftime
+import pdb
 # Requires eGenix.com mx Base Distribution
 # http://www.egenix.com/products/python/mxBase/
 try:
@@ -40,9 +41,11 @@ reg2 = re.compile(month, re.IGNORECASE)
 
 #day
 day = "((?<!\w)monday(?=\W|$)|(?<!\w)tuesday(?=\W|$)|(?<!\w)wednesday(?=\W|$)|(?<!\w)thursday(?=\W|$)|(?<!\w)friday(?=\W|$)|(?<!\w)saturday(?=\W|$)|(?<!\w)sunday(?=\W|$))"
-rel_days = "((?<!\w)today(?=\W|$)|(?<!\w)tomorrow(?=\W|$)|(?<!\w)tonight(?=\W|$)|(?<!\w)tonite(?=\W|$))"
 week_day = "((?<!\w)monday(?=\W|$)|(?<!\w)tuesday(?=\W|$)|(?<!\w)wednesday(?=\W|$)|(?<!\w)thursday(?=\W|$)|(?<!\w)friday(?=\W|$)|(?<!\w)saturday(?=\W|$)|(?<!\w)sunday(?=\W|$))"
 reg3 = re.compile(day, re.IGNORECASE)
+
+# Update: 2/28 - don't assign relative values with time, let probability/algorithm identify what this time means
+rel_days = "((?<!\w)today(?=\W|$)|(?<!\w)tomorrow(?=\W|$)|(?<!\w)tonight(?=\W|$)|(?<!\w)tonite(?=\W|$))"
 reg4 = re.compile(rel_days, re.IGNORECASE)
 
 #hour
@@ -117,8 +120,14 @@ hour_object = []
 minute_object = []
 second_object = []
 
-
-
+stopwordDictionary = {}
+#loads stopwords and accesses them in real time
+def loadStopwords():
+    global stopwordDictionary
+    ins = open ("stopwords.txt","r")
+    for line in ins:
+        stopwordDictionary[line.strip('\n')] = True
+    ins.close()
 
 #searches text for relevant fields, if no fields are found, current time field(s) are returned
 def tag(text):
@@ -158,11 +167,6 @@ def tag(text):
         return day_object
 
     def findHour(text):
-        found = reg5.findall(text)
-        for timex in found:
-            cTimex = relHours[timex.lower()]
-            hour_object.append(str(cTimex))
-
         found = reg6.findall(text)
         for timex in found:
             cTimex = hashnum(timex)
@@ -179,7 +183,22 @@ def tag(text):
         second_object.append("00")
         return second_object
 
-    return [findYear(text),findMonth(text),findDay(text),findHour(text),findMin(text),findSecond(text)]
+    def findRelative(text):
+        found = reg5.findall(text)
+        return found
+
+    #remove stopwords and return block of text
+    def stripText(text):
+        text = text.split()
+        output = []
+        for word in text:
+            #remove all formatting from word
+            word = ''.join(s for s in word if ord(s) >31 and ord(s) <126)
+            if stopwordDictionary.get(str(word),False) != True:
+                output.append(word)
+        return output
+
+    return [findYear(text),findMonth(text),findDay(text),findHour(text),findMin(text),findSecond(text),findRelative(text)], stripText(text)
 
 # Hash function for week days to simplify the grounding task.
 # [Mon..Sun] -> [0..6]
@@ -444,6 +463,7 @@ def ground(tagged_text, base_date):
 
 def parse(text):
     prepareHashMaps()
+    loadStopwords()
     return tag(text)
     # print "Day object found: " + str(day_object)
     # print "Time object found: " + str(time_object)

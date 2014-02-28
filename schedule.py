@@ -187,7 +187,7 @@ def schedule_event(email_body, parsed):
     event_duration = int(raw_input('Duration of the event (minutes): '))    # and a duration
 
     print "Scheduling an event now.."
-    if len(parsed[3]) == 1:     # Unclear hour, this assumes definite date TODO: was == 1 while regex would always return something
+    if len(parsed[3]) != 1:     # Unclear hour, this assumes definite date TODO: was == 1 while regex would always return something
         possible_time = prompt_user_for_time(parsed, event_duration, email_body)    # Grab the time the user wants
 
         # Schedule at the time requested by the users

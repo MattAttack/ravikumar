@@ -171,8 +171,9 @@ def tag(text):
         for timex in found:
             cTimex = hashnum(timex)
             hour_object.append(str(cTimex))
-        if not hour_object:
-            hour_object.append(str(currentHour))
+        #return empty array if no hour object found 
+        # if not hour_object:
+        #     hour_object.append(str(currentHour))
         return hour_object
 
     def findMin(text):

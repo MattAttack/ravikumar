@@ -102,7 +102,7 @@ relHours = {
 
 relDays = {
     'today':currentDay,
-    'tomorrow':str(int(currentDay)+1),
+    'tomorrow': int((date.today()+timedelta(days=1)).day),
     'tonight':currentDay,
     'tonite':currentDay
 }
@@ -223,7 +223,6 @@ def prepareHashMaps():
     for i in range(currentDayofWeek+1,7,1):
         days[i] = int((today+t).day)
         t = t + timedelta(days=1)
-    pdb.set_trace()
    
 # Hash number in words into the corresponding integer value
 def hashnum(number):

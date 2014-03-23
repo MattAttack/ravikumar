@@ -190,6 +190,16 @@ def tag(text):
         found = reg5.findall(text)
         return found
 
+    #method which returns which month each day value corresponds to 
+    def findMonth_temp(days):
+        months = []
+        today = date.today()
+        for day in days:
+            if day < currentDay:
+                append.months(int((today+timedelta(days=32)).month))
+            else:
+                months.append(int(today.month))
+        return months
     #remove stopwords and return block of text
     def stripText(text):
         text = text.split()
@@ -203,7 +213,9 @@ def tag(text):
 
     # return [findYear(text),findMonth(text),findDay(text),findHour(text),findMin(text),findSecond(text),findRelative(text)], stripText(text)
     #Changed to only return the day
-    return findDay(text)
+    daysOut = findDay(text)
+    monthsOut = findMonth_temp(daysOut)
+    return daysOut,monthsOut
 
 # Hash function for week days to simplify the grounding task.
 # [Mon..Sun] -> [0..6]

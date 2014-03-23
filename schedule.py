@@ -22,7 +22,6 @@ import imaplib
 import email
 
 # Work with other scripts
-import pull_email
 import timex
 
 # Debugging
@@ -40,16 +39,15 @@ def create_connection():
     # Connect to the calendar
     client.ClientLogin(username, password, client.source)
 
-    # Connect to email inbox
-    mail.login(username + '@gmail.com', password)
+    mail.login(username+'@gmail.com', password)
     mail.list()
-    mail.select("INBOX")        # Connect to the inbox
+    mail.select("INBOX") # connect to inbox.
 
-    print "Succesfully Connected to Calendar and Inbox! \n"
+    print 'Successfully connected to email and calendar!'
 
 # Retrieves the move recent email
 def check_email():
-    email_text = pull_email.getEmail()
+    email_text = get_most_recent_email()
     print "Email text: \n" + email_text
     return email_text
 
@@ -203,6 +201,25 @@ def schedule_event(email_body, parsed):
         # TODO: Have end time incorporate the duration
         end_time = time_object(parsed[0][0], parsed[1][0], parsed[2][0], str(int(parsed[3][0]) + 1), parsed[4][0], parsed[5][0])
         InsertSingleEvent(client, event_name, None, None, start_time, end_time)
+
+# Returns the body of the user's most recent email
+def get_most_recent_email():
+    status, data = mail.search(None, 'ALL')
+    ids = data[0] # data is a list.
+    id_list = ids.split() # ids is a space separated string
+    latest_email_id = id_list[-1] # get the latest
+    result, data = mail.fetch(latest_email_id, "(RFC822)") # fetch the email body (RFC822) for the given ID
+
+
+    raw_email = data[0][1] #this variable is an "email" object
+    em = email.message_from_string(raw_email)
+
+    if isinstance(em._payload, list):
+        body = em._payload[0]._payload
+    else:
+        body = em._payload
+
+    return body
 
 def main():
     create_connection()                 # need to connect to calendar now

@@ -7,6 +7,7 @@ import os
 import sys
 from time import gmtime, strftime
 import pdb
+from datetime import *
 # Requires eGenix.com mx Base Distribution
 # http://www.egenix.com/products/python/mxBase/
 try:
@@ -151,6 +152,7 @@ def tag(text):
             month_object.append(str(currentMonth))
         return month_object
 
+    #Always looks towards the future
     def findDay(text):
         found = reg3.findall(text)
         for timex in found:
@@ -199,26 +201,30 @@ def tag(text):
                 output.append(word)
         return output
 
-    return [findYear(text),findMonth(text),findDay(text),findHour(text),findMin(text),findSecond(text),findRelative(text)], stripText(text)
+    # return [findYear(text),findMonth(text),findDay(text),findHour(text),findMin(text),findSecond(text),findRelative(text)], stripText(text)
+    #Changed to only return the day
+    return findDay(text)
 
 # Hash function for week days to simplify the grounding task.
 # [Mon..Sun] -> [0..6]
 
 def prepareHashMaps():
+    today = date.today()
+    t = timedelta(days=6)
+    days[currentDayofWeek] = int( (today+timedelta(days=7)).day)
 
     #fill in the days earlier in the week
-    tempSum = 6
     for i in range(currentDayofWeek-1,-1,-1):
-            days[i] = currentDay+tempSum
-            tempSum-=1
+            days[i] = int((today+t).day)
+            t = t - timedelta(days=1)
 
     #fill in the days later in the week
-    tempDay = currentDay
-    for i in range(currentDayofWeek,7,1):
-        days[i] = tempDay
-        tempDay += 1
-
-
+    t = timedelta(days=1)
+    for i in range(currentDayofWeek+1,7,1):
+        days[i] = int((today+t).day)
+        t = t + timedelta(days=1)
+    pdb.set_trace()
+   
 # Hash number in words into the corresponding integer value
 def hashnum(number):
     if re.match(r'one(?=\W|$)|(?<!\w)^a\b', number, re.IGNORECASE):

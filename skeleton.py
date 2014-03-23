@@ -16,6 +16,7 @@ from time import gmtime, strftime
 
 # Keeping track of data
 import pickle
+import os.path
 
 # Email Connection
 import imaplib
@@ -31,6 +32,8 @@ import pdb
 seen_emails = []
 time_vectors = []
 output_log  = []
+
+# Credentials to log into Gmail/GCal API
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')  # Dummy Google API Key
 mail = imaplib.IMAP4_SSL('imap.gmail.com')
 username = 'utcaldummy'
@@ -49,11 +52,26 @@ def create_connection():
     print 'Successfully connected to email and calendar!'
 
 def load_variables():
+    global seen_emails, time_vectors, output_log
+    time_vectors = load("time_vectors.p",time_vectors)
+
+    # loads data if it already exists, creates pickle file otherwise
+    def load(fileName,data):
+        #check if it exists
+        if os.path.isfile(fileName):
+            with open(fileName,'wb') as f:
+                pickle.dump(variable,f)
+            return data
+        #create if it does not
+        else:
+            with open(fileName,'rb') as f:
+                data = pickle.load(f)
+            return data
+
     # TODO: Load previous data:
     #   - seen emails
     #   - time vectors
     #   - log stuff
-    pass
 
 # Returns the body of the user's most recent email
 # TODO: Matt
@@ -69,10 +87,10 @@ def parse_email(email_body):
 
     free_times = filter_out_conflicts(possible_times)
 
-    return free_timess # Already ranked
+    return free_times # Already ranked
 
     # TODO: Jay
-    def get_possible_days():
+    def get_possible_days(email_body):
         # Return a list of the possible days
         pass
 
@@ -100,10 +118,10 @@ def log_updates():
 
 def main():
     create_connection()
-
     load_variables()                        # TODO: Both
 
     # Get all new emails
+    # TODO: Matt: Move this to a method, main method should be clean
     new_emails = get_most_recent_emails()
     for email in new_emails:
         times = parse_email(email)

@@ -201,7 +201,7 @@ def check_for_new_emails_and_prompt():
         process_email(subj, body, sender)
 
 def process_email(subject, body, sender):
-    print "Processing Email:"
+    print "\nProcessing Email:"
     print "\nSubject: %s" % subject
     print "From: %s" % sender
     print "%s" % body
@@ -211,8 +211,7 @@ def process_email(subject, body, sender):
     schedule_calendar_event(possible_times[user_selection])
 
     # TODO: Append that body to the appropriate time vector
-    log_updates.append( (possible_times, user_selection, body) )
-
+    output_log.append( (possible_times, user_selection, body) )
     seen_emails.append( (subject, body) )
 
 def schedule_calendar_event(time, title=None):
@@ -237,6 +236,7 @@ def main():
     create_connection()
     load_variables()
     check_for_new_emails_and_prompt()
+    log_updates()
 
 if __name__ == '__main__':
     main()

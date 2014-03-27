@@ -7,6 +7,7 @@ class email_vector():
 class prototype_vector():
     def __init__(self):
     	pass
+
     def cos_sim(self, email_vec):
         return 0
 

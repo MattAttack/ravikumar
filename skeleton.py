@@ -67,10 +67,21 @@ def load_variables():
         with open(fileName,'rb') as f:
                 return pickle.load(f)
 
-    # Load up each of the values needed
     time_vectors = load("time_vectors.p", time_vectors)
-    #   seen emails
-    #   log stuff
+    seen_emails  = load("seen_emails.p", seen_emails)
+    output_log   = load("output_log.p", output_log)
+
+def log_updates():
+    global seen_emails, time_vectors, output_log
+
+    def save(file_name, data):
+        with open(file_name, 'wb') as f:
+            pickle.dump(data, f)
+
+    save("time_vectors.p", time_vectors)
+    save("seen_emails.p", seen_emails)
+    save("output_log.p", output_log)
+
 
 def parse_email(email_body):
     days = get_possible_days(email)
@@ -103,13 +114,6 @@ def prompt_user(times):
     # Prompt the user for a time
     pass
 
-# TODO: Matt
-def log_updates():
-    # Update read emails
-    # Update time vectors
-    # Update output_log
-    pass
-
 def check_for_new_emails_and_prompt():
     status, data = mail.search(None, 'ALL')     # Grab all the emails
     email_ids = data[0].split()                 # and their email ids
@@ -123,7 +127,7 @@ def check_for_new_emails_and_prompt():
         email_obj = email.message_from_string(raw_email)
 
         # Payload can either be a list (HTML & Reg Version), or just Reg
-        if isinstance(em._payload, list):
+        if isinstance(email_obj._payload, list):
             body = email_obj._payload[0]._payload
         else:
             body = email_obj._payload
@@ -137,11 +141,16 @@ def check_for_new_emails_and_prompt():
 
         # If you haven't seen this before handle accordingly
         process_email(subj, body, sender)
-        pdb.set_trace()
 
 def process_email(subject, body, sender):
+    print "Processing Email:"
+    print "\nSubject: %s" % subject
+    print "From: %s" % sender
+    print "%s" % body
 
-    pass
+    # possible_times = parse_email(body)
+    # user_selection = prompt_user(possible_times)
+
 
 def main():
     create_connection()

@@ -9,6 +9,7 @@ import gdata.calendar.client
 import gdata.acl.data
 import atom.data
 import time
+import useful
 import datetime
 from dateutil import parser
 
@@ -23,7 +24,7 @@ import imaplib
 import email
 
 # Work with other scripts
-import timex
+from timex import parse
 
 # Debugging
 import pdb
@@ -93,24 +94,17 @@ def time_object(year, month, day, hour, minute, second):
 
 def parse_email(email_body):
 
-    days = get_possible_days(email) #two lists of ints representing days to schedule and the month
-    times = get_possible_times(day)
-
-    # days = get_possible_days(email)
-    # possible_times = get_possible_times()
-
-    # Create a list of days and times
-    possible_times = combine_days_with_possible_times(days)
-    free_times = filter_out_conflicts(possible_times)
-
-    # TODO: Rank the times
-
-    return free_times
-
     def get_possible_days(email_body):
-        return parse(email_body)
+        possible_days = []
+        parsed_results = parse(email_body)
+        for month in parsed_results[1]:
+            for date in parsed_results[0]:
+                possible_days.append( ('2014', month, date) )
 
-    def get_possible_times(possible_days):
+        return possible_days
+
+
+    def get_possible_times_filtered(possible_days):
         possible_times = []         # Stores tuples (start_time, end_time)
         duration = 60               # Currently duration of event is an hour
 
@@ -150,28 +144,32 @@ def parse_email(email_body):
         return feed.entry
 
     # Acutal function logic
-    days = get_possible_days(email)
-    possible_times = get_possible_times(days)
-
-    # Create a list of days and times
-    possible_times = combine_days_with_possible_times(days)
-    free_times = filter_out_conflicts(possible_times)
+    days = get_possible_days(email_body)
+    possible_free_times = get_possible_times_filtered(days)
 
     # TODO: Rank the times
 
-    return free_times
+    return possible_free_times
 
 
 
 def prompt_user(times):
+    limit = 10
     # Print out the possible times, with an associated index
     print 'Please select a start time for your event: '
-    for i, possible_time in enumerate(possible_times):
+    for i, possible_time in enumerate(times[:limit]):
         print '%02d :: %s - %s' % (i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
 
+    user_selection = int(input("\nSelect Most Optimal Time: "))
+    print("\n")
 
-    print               # Prompt user for a selection
-    user_selection = int(input("Please select the most optimal time: "))
+    while user_selection == -1:
+        for i, possible_time in enumerate(times[limit:limit+10]):
+            print '%02d :: %s - %s' % (limit + i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
+        user_selection = int(input("\nSelect Most Optimal Time: "))
+        limit += 10
+        print "\n"
+
     return user_selection
 
 def check_for_new_emails_and_prompt():
@@ -210,11 +208,30 @@ def process_email(subject, body, sender):
 
     possible_times = parse_email(body)
     user_selection = prompt_user(possible_times)
+    schedule_calendar_event(possible_times[user_selection])
 
     # TODO: Append that body to the appropriate time vector
-    # TODO: Log the email accordingly
+    log_updates.append( (possible_times, user_selection, body) )
 
-    seen_emails.append(subject, body)
+    seen_emails.append( (subject, body) )
+
+def schedule_calendar_event(time, title=None):
+    event_title = ""
+    if (title == None):
+        while not event_title:
+            event_title = raw_input("What would you like to call your event: ")
+    else:
+        event_title = title
+
+    useful.InsertSingleEvent(client,
+                             event_title,
+                             None,
+                             None,
+                             time[0].strftime("%Y-%m-%dT%H:%M:%S") + "-06:00",
+                             time[1].strftime("%Y-%m-%dT%H:%M:%S") + "-06:00"
+                             )
+
+
 
 def main():
     create_connection()

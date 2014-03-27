@@ -79,7 +79,7 @@ def get_most_recent_emails():
     return []
 
 def parse_email(email_body):
-    days = get_possible_days(email)
+    days = get_possible_days(email) #two lists of ints representing days to schedule and the month
     times = get_possible_times(day)
 
     # Create a list of days and times
@@ -91,8 +91,7 @@ def parse_email(email_body):
 
     # TODO: Jay
     def get_possible_days(email_body):
-        # Return a list of the possible days
-        pass
+        return parse(email_body)
 
     # TODO: Matt
     def get_possible_times():

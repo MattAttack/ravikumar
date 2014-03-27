@@ -92,17 +92,6 @@ def time_object(year, month, day, hour, minute, second):
     return '%s-%s-%sT%s:%s:%s-06:00' % (year, month, day, hour, minute, second)
 
 def parse_email(email_body):
-    days = get_possible_days(email)
-    possible_times = get_possible_times()
-
-    # Create a list of days and times
-    possible_times = combine_days_with_possible_times(days)
-    free_times = filter_out_conflicts(possible_times)
-
-    # TODO: Rank the times
-
-    return free_times
-
     # TODO: Jay
     # Note: Jay for possible days have this return a list of
     # [(year, month, date)] where each is an int. This is what I will
@@ -126,8 +115,7 @@ def parse_email(email_body):
             day_end_time   = parser.parse(day_end_str)
 
             while(day_start_time < day_end_time):
-                with end_time as day_start_time + datetime.timedelta(minutes=duration):
-                    new_possible_time = (day_start_time, end_time)
+                new_possible_time = (day_start_time, day_start_time + datetime.timedelta(minutes=duration))
                 possible_times.append(new_possible_time)
                 day_start_time += datetime.timedelta(minutes=30)
 
@@ -150,6 +138,20 @@ def parse_email(email_body):
         feed = client.GetCalendarEventFeed(q=query) # Execute the query
 
         return feed.entry
+
+    # Acutal function logic
+    days = get_possible_days(email)
+    possible_times = get_possible_times(days)
+
+    # Create a list of days and times
+    possible_times = combine_days_with_possible_times(days)
+    free_times = filter_out_conflicts(possible_times)
+
+    # TODO: Rank the times
+
+    return free_times
+
+
 
 def prompt_user(times):
     # Print out the possible times, with an associated index

@@ -92,13 +92,23 @@ def time_object(year, month, day, hour, minute, second):
     return '%s-%s-%sT%s:%s:%s-06:00' % (year, month, day, hour, minute, second)
 
 def parse_email(email_body):
-    # TODO: Jay
-    # Note: Jay for possible days have this return a list of
-    # [(year, month, date)] where each is an int. This is what I will
-    # be expecting
+
+    days = get_possible_days(email) #two lists of ints representing days to schedule and the month
+    times = get_possible_times(day)
+
+    # days = get_possible_days(email)
+    # possible_times = get_possible_times()
+
+    # Create a list of days and times
+    possible_times = combine_days_with_possible_times(days)
+    free_times = filter_out_conflicts(possible_times)
+
+    # TODO: Rank the times
+
+    return free_times
+
     def get_possible_days(email_body):
-        # Return a list of the possible days
-        pass
+        return parse(email_body)
 
     def get_possible_times(possible_days):
         possible_times = []         # Stores tuples (start_time, end_time)

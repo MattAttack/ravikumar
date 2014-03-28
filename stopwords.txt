@@ -7,8 +7,6 @@ according
 accordingly
 across
 actually
-after
-afterwards
 again
 against
 all
@@ -47,7 +45,6 @@ ask
 asking
 associated
 at
-available
 away
 awfully
 b
@@ -279,7 +276,7 @@ no
 nobody
 non
 none
-noone
+no one
 nor
 normally
 not
@@ -525,18 +522,4 @@ zero
 nbsp
 http
 www
-writeln
-pdf
-html
-endobj
-obj
-aacute
-eacute
-iacute
-oacute
-uacute
-agrave
-egrave
-igrave
-ograve
-ugrave
+

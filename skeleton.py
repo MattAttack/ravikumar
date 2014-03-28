@@ -12,7 +12,6 @@ import time
 import useful
 import datetime
 from dateutil import parser
-
 from time import gmtime, strftime
 
 # Keeping track of data
@@ -25,14 +24,19 @@ import email
 
 # Work with other scripts
 from timex import parse
+from vector import vector
 
 # Debugging
-import pdb
+import ipdb as pdb
 
-# Global variables for authentication
+# Global variables for vector calculations
+wordWeights = {}
+
+# Global variables for data logging
 seen_emails = []
-time_vectors = []
+time_vectors = {}
 output_log  = []
+stopwords = {}
 
 # Credentials to log into Gmail/GCal API
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')  # Dummy Google API Key
@@ -53,9 +57,8 @@ def create_connection():
 
     print 'Successfully connected to email and calendar!'
 
-
 def load_variables():
-    global seen_emails, time_vectors, output_log
+    global seen_emails, time_vectors, output_log, stopwords, wordWeights
 
     # Loads data if it already exists, creates pickle file otherwise
     def load(fileName, data):
@@ -71,9 +74,11 @@ def load_variables():
     time_vectors = load("time_vectors.p", time_vectors)
     seen_emails  = load("seen_emails.p", seen_emails)
     output_log   = load("output_log.p", output_log)
+    stopwords    = load("stopwords.p",stopwords) #this file needs to be given to user, it will not be created
+    wordWeights  = load("wordWeights.p",wordWeights)
 
 def log_updates():
-    global seen_emails, time_vectors, output_log
+    global seen_emails, time_vectors, output_log, wordWeights
 
     def save(file_name, data):
         with open(file_name, 'wb') as f:
@@ -82,6 +87,7 @@ def log_updates():
     save("time_vectors.p", time_vectors)
     save("seen_emails.p", seen_emails)
     save("output_log.p", output_log)
+    save("wordWeights.p",wordWeights)
 
 def time_object(year, month, day, hour, minute, second):
     month  = "%02d" % int(month)
@@ -122,7 +128,6 @@ def parse_email(email_body):
                 new_possible_time = (day_start_time, day_start_time + datetime.timedelta(minutes=duration))
                 possible_times.append(new_possible_time)
                 day_start_time += datetime.timedelta(minutes=30)
-
             # Faster to filter out conflicts on per day basis than at the end
             for e_conflict in findConflicts(day_start_str, day_end_str):
                 conflict_start = parser.parse(e_conflict.when[0].start)
@@ -130,7 +135,6 @@ def parse_email(email_body):
 
                 # Filter out the bad times for that event
                 possible_times = filter(lambda time: (time[1] <= conflict_start or conflict_end <= time[0]), possible_times)
-
         return possible_times
 
     def findConflicts(start_date, end_date):
@@ -143,34 +147,115 @@ def parse_email(email_body):
 
         return feed.entry
 
+    
+
     # Acutal function logic
     days = get_possible_days(email_body)
     possible_free_times = get_possible_times_filtered(days)
-
-    # TODO: Rank the times
-
     return possible_free_times
 
+def rank_times(times,email):
+    global wordWeights
+    global stopwords
+    global time_vectors
+    emailVector = None
 
+    #loads vector, creates one if necessary
+    def loadVector(time):
+        global time_vectors
+        time = str(time[0].hour)+"-"+str(time[1].minute) #string representation of time object
+        #check if the vector exists first
+        if time in time_vectors:
+            return time_vectors[time]
+        #if not, return nothine
+        else:
+            return None   
 
-def prompt_user(times):
-    limit = 10
-    # Print out the possible times, with an associated index
-    print 'Please select a start time for your event: '
-    for i, possible_time in enumerate(times[:limit]):
-        print '%02d :: %s - %s' % (i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
+    def calculateWordWeights(email,wordWeights,emailVector):
+        importantWordsFromEmail = {}
+        sum = 0
+        
+        #count the number of words that are not stopwords and how often they occur
+        for word in email.split():
+            #TODO: Use regex to remove all punctuation here
+            if word not in stopwords:
+                importantWordsFromEmail[word] = importantWordsFromEmail.get(word,0)+1
+                sum+=1
 
-    user_selection = int(input("\nSelect Most Optimal Time: "))
-    print("\n")
+        #update the global count of each words
+        for word in importantWordsFromEmail.keys():
+            wordWeights[word] = wordWeights.get(word,0)+importantWordsFromEmail[word]
 
-    while user_selection == -1:
-        for i, possible_time in enumerate(times[limit:limit+10]):
-            print '%02d :: %s - %s' % (limit + i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
+        #update the total number of words
+        wordWeights["totalNumbers"] = wordWeights.get("totalNumbers",0) + sum
+
+        #create a vector representing the email
+        emailVector = vector(importantWordsFromEmail,wordWeights)
+        return emailVector
+    
+
+    def similarity_test(times,emailVector):
+        rankResults = {}
+        for time in times:
+            timeVector = loadVector(time)
+            #check if this time already has a vector
+
+            if timeVector != None:
+                #if it does, perform similarity calculations
+                simScore = timeVector.similarityTest(emailVector,wordWeights)
+                rankResults[time] = simScore
+        return rankResults
+
+    def sortResults(rankedInOrder,times):
+        #sort the results so that the top similarity scores are first then the unranked times
+        rankedInOrder = sorted(rankResults,key=rankResults.get,reverse=True)
+        unranked = []
+        for time in times:
+            if time not in rankedInOrder: #is this one of the top results? if not, add it to unranked list
+                unranked.append(time)
+
+        rankedInOrder.extend(unranked) #combine ranked and unranked into one list
+        return rankedInOrder
+    
+    def prompt_user(times):
+        limit = 50
+        # Print out the possible times, with an associated index
+        print 'Please select a start time for your event: '
+        for i, possible_time in enumerate(times[:limit]):
+            print '%02d :: %s - %s' % (i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
+
         user_selection = int(input("\nSelect Most Optimal Time: "))
-        limit += 10
-        print "\n"
+        print("\n")
 
-    return user_selection
+        while user_selection == -1:
+            for i, possible_time in enumerate(times[limit:limit+10]):
+                print '%02d :: %s - %s' % (limit + i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
+            user_selection = int(input("\nSelect Most Optimal Time: "))
+            limit += 10
+            print "\n"
+
+        return user_selection
+
+    def updateVector(user_choice,sortedResults,emailVector,time_vectors):
+        time = sortedResults[user_choice]
+        timeVector = loadVector(time)
+        if timeVector == None:
+            timeVector = emailVector
+        else:
+            timeVector.appendVector(emailVector)
+        time_str = str(time[0].hour)+"-"+str(time[1].minute)    
+        time_vectors[time_str] = timeVector
+
+
+
+
+    emailVector = calculateWordWeights(email,wordWeights,emailVector) #update the global count of all words/their weights
+    rankResults = similarity_test(times,emailVector) #perform similarity tests for all vectors (time slots) which we have data for
+    sortedResults = sortResults(rankResults ,times) #sort the results according to the similarity results
+    user_choice = prompt_user(sortedResults) #ask the user which time they would actually like to schedule
+    updateVector(user_choice,sortedResults,emailVector,time_vectors) # associate this email vector with the time the user has chosen    
+    pdb.set_trace()
+    return sortedResults, user_choice
 
 def check_for_new_emails_and_prompt():
     status, data = mail.search(None, 'ALL')     # Grab all the emails
@@ -200,6 +285,7 @@ def check_for_new_emails_and_prompt():
         # If you haven't seen this before handle accordingly
         process_email(subj, body, sender)
 
+
 def process_email(subject, body, sender):
     print "\nProcessing Email:"
     print "\nSubject: %s" % subject
@@ -207,7 +293,8 @@ def process_email(subject, body, sender):
     print "%s" % body
 
     possible_times = parse_email(body)
-    user_selection = prompt_user(possible_times)
+    possible_times,user_selection = rank_times(possible_times,body)
+    # store_user_choice(user_selection)
     schedule_calendar_event(possible_times[user_selection])
 
     # TODO: Append that body to the appropriate time vector
@@ -229,8 +316,6 @@ def schedule_calendar_event(time, title=None):
                              time[0].strftime("%Y-%m-%dT%H:%M:%S") + "-06:00",
                              time[1].strftime("%Y-%m-%dT%H:%M:%S") + "-06:00"
                              )
-
-
 
 def main():
     create_connection()

@@ -6,7 +6,7 @@ import string
 import os
 import sys
 from time import gmtime, strftime
-import pdb
+import ipdb as pdb
 from datetime import *
 # Requires eGenix.com mx Base Distribution
 # http://www.egenix.com/products/python/mxBase/
@@ -16,7 +16,6 @@ except ImportError:
     print """
 Requires eGenix.com mx Base Distribution
 http://www.egenix.com/products/python/mxBase/"""
-
 
 
 # Predefined strings.
@@ -154,7 +153,6 @@ def tag(text):
 
     #Always looks towards the future
     def findDay(text):
-        pdb.set_trace()
         found = reg3.findall(text)
         for timex in found:
             cTimex = hashweekdays[timex[0:3].lower()]

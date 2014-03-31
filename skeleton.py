@@ -41,8 +41,8 @@ stopwords = {}
 # Credentials to log into Gmail/GCal API
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')  # Dummy Google API Key
 mail = imaplib.IMAP4_SSL('imap.gmail.com')
-username = 'jayshahtx'
-password = 'Persia2004'
+username = 'utcaldummy'
+password = 'utcaldummy123'
 
 
 # Authenticate for the calendar and email to be able to access the user's
@@ -290,6 +290,7 @@ def process_email(subject, body, sender):
     print "%s" % body
 
     possible_times = parse_email(body)
+    pdb.set_trace()
     possible_times,user_selection = rank_times(possible_times,body)
     # store_user_choice(user_selection)
     schedule_calendar_event(possible_times[user_selection])

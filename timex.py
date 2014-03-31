@@ -164,8 +164,8 @@ def tag(text):
         for timex in found:
             cTimex = relDays[timex.lower()]
             day_object.append(str(cTimex))
-        if not day_object:
-            day_object.append(str(currentDay))
+        # if not day_object:
+        #     day_object.append(str(currentDay))
         return day_object
 
     def findHour(text):

@@ -34,7 +34,7 @@ class vector():
 		fraction = num/den
 		return fraction
 
-	def appendVector(self,vectorB):
+	def appendVector(self, vectorB):
 		bData = vectorB.data
 		for word in bData.keys():
 			self.data[word] = self.data.get(word,0) + bData[word]

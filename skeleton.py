@@ -41,8 +41,8 @@ stopwords = {}
 # Credentials to log into Gmail/GCal API
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')  # Dummy Google API Key
 mail = imaplib.IMAP4_SSL('imap.gmail.com')
-username = 'utcaldummy'
-password = 'utcaldummy123'
+username = 'jayshahtx'
+password = 'Persia2004'
 
 
 # Authenticate for the calendar and email to be able to access the user's
@@ -242,19 +242,16 @@ def rank_times(times,email):
         if timeVector == None:
             timeVector = emailVector
         else:
+            pdb.set_trace()
             timeVector.appendVector(emailVector)
         time_str = str(time[0].hour)+"-"+str(time[1].minute)    
         time_vectors[time_str] = timeVector
-
-
-
 
     emailVector = calculateWordWeights(email,wordWeights,emailVector) #update the global count of all words/their weights
     rankResults = similarity_test(times,emailVector) #perform similarity tests for all vectors (time slots) which we have data for
     sortedResults = sortResults(rankResults ,times) #sort the results according to the similarity results
     user_choice = prompt_user(sortedResults) #ask the user which time they would actually like to schedule
     updateVector(user_choice,sortedResults,emailVector,time_vectors) # associate this email vector with the time the user has chosen    
-    pdb.set_trace()
     return sortedResults, user_choice
 
 def check_for_new_emails_and_prompt():

@@ -26,12 +26,28 @@ import timex
 
 # Debugging
 import pdb
+import sys
 
 # Global variables for authentication
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')  # Dummy Google API Key
 mail = imaplib.IMAP4_SSL('imap.gmail.com')
-username = 'utcaldummy'
-password = 'utcaldummy123'
+
+# Read in the credentials from an input file
+f = open("credentials.txt")
+creds = f.readlines()
+try:
+    assert(len(creds) == 2)
+    username = creds[0].strip()
+    password = creds[1].strip()
+except:
+    print """
+        Error parsing credentials.txt.
+
+        credentials.txt should contain the username and password
+        each on its own line and nothing else.
+    """
+    sys.exit()
+
 
 # Authenticate for the calendar and email to be able to access the user's
 # email and access the calendarb

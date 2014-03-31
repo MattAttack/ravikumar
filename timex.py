@@ -154,6 +154,7 @@ def tag(text):
 
     #Always looks towards the future
     def findDay(text):
+        pdb.set_trace()
         found = reg3.findall(text)
         for timex in found:
             cTimex = hashweekdays[timex[0:3].lower()]

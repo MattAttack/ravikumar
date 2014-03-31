@@ -55,7 +55,7 @@ def create_connection():
     mail.list()
     mail.select("INBOX")
 
-    print 'Successfully connected to email and calendar!'
+    print 'Successfully connected to email and calendar'
 
 def load_variables():
     global seen_emails, time_vectors, output_log, stopwords, wordWeights
@@ -242,7 +242,6 @@ def rank_times(times,email):
         if timeVector == None:
             timeVector = emailVector
         else:
-            pdb.set_trace()
             timeVector.appendVector(emailVector)
         time_str = str(time[0].hour)+"-"+str(time[1].minute)    
         time_vectors[time_str] = timeVector
@@ -266,6 +265,7 @@ def check_for_new_emails_and_prompt():
         raw_email = data[0][1]              # Turn it into an email object
         email_obj = email.message_from_string(raw_email)
 
+        pdb.set_trace()
         # Payload can either be a list (HTML & Reg Version), or just Reg
         if isinstance(email_obj._payload, list):
             body = email_obj._payload[0]._payload
@@ -284,20 +284,24 @@ def check_for_new_emails_and_prompt():
 
 
 def process_email(subject, body, sender):
-    print "\nProcessing Email:"
-    print "\nSubject: %s" % subject
-    print "From: %s" % sender
-    print "%s" % body
 
-    possible_times = parse_email(body)
+    #check if this email requires a new appointment
     pdb.set_trace()
-    possible_times,user_selection = rank_times(possible_times,body)
-    # store_user_choice(user_selection)
-    schedule_calendar_event(possible_times[user_selection])
-
-    # TODO: Append that body to the appropriate time vector
-    output_log.append( (possible_times, user_selection, body) )
+    possible_times = parse_email(body)
     seen_emails.append( (subject, body) )
+    
+    if len(possible_times) > 0:
+        pdb.set_trace()
+        print "\nProcessing Email:"
+        print "\nSubject: %s" % subject
+        print "From: %s" % sender
+        print "%s" % body
+        possible_times,user_selection = rank_times(possible_times,body)
+        # store_user_choice(user_selection)
+        schedule_calendar_event(possible_times[user_selection])
+
+        # TODO: Append that body to the appropriate time vector
+        output_log.append( (possible_times, user_selection, body) )
 
 def schedule_calendar_event(time, title=None):
     event_title = ""

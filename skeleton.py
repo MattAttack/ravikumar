@@ -266,7 +266,7 @@ def rank_times(times,email):
         time_str = str(time[0].hour)+"-"+str(time[1].minute)
         time_vectors[time_str] = timeVector
 
-    def log_updates():
+    def log_changes():
         global seen_emails, time_vectors, wordWeights
         
         def save(file_name, data):
@@ -282,7 +282,7 @@ def rank_times(times,email):
     sortedResults = sortResults(rankResults ,times) #sort the results according to the similarity results
     user_choice = prompt_user(sortedResults) #ask the user which time they would actually like to schedule
     updateVector(user_choice,sortedResults,emailVector,time_vectors) # associate this email vector with the time the user has chosen
-    log_updates() #save updates
+    log_changes() #save updates
     return sortedResults, user_choice
 
 def check_for_new_emails_and_prompt():
@@ -308,7 +308,8 @@ def check_for_new_emails_and_prompt():
         sender = email_obj["From"]
 
         # Seen this email before? -> Seen all older. Terminate
-        if (subj, body) in seen_emails:
+        pdb.set_trace()
+        if (str(subj), body) in seen_emails:
             return
 
         # If you haven't seen this before handle accordingly
@@ -316,11 +317,11 @@ def check_for_new_emails_and_prompt():
 
 
 def process_email(subject, body, sender):
-
+    seen_emails.append( (str(subject), body) )
     #check if this email requires a new appointment
     body = stripPunctuation(body)
     possible_times = parse_email(body)
-    seen_emails.append( (subject, body) )
+    
     if len(possible_times) > 0:
         print "\nProcessing Email:"
         print "\nSubject: %s" % subject

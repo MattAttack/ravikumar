@@ -308,7 +308,7 @@ def process_email(subject, body, sender):
     body = stripPunctuation(body)
     possible_times = parse_email(body)
     seen_emails.append( (subject, body) )
-
+    pdb.set_trace()
     if len(possible_times) > 0:
         print "\nProcessing Email:"
         print "\nSubject: %s" % subject

@@ -115,8 +115,8 @@ days = [0]*7
 timex_found = []
 
 year_object = []
-month_object = []
-day_object = [] #returns a number which represents which date in a month, IE: 31 = march 31st
+# month_object = [] #moved this to tag method, reset before ever call and clear it everytime 
+# day_object = [] #returns a number which represents which date in a month, IE: 31 = march 31st
 hour_object = []
 minute_object = []
 second_object = []
@@ -132,6 +132,8 @@ def loadStopwords():
 
 #searches text for relevant fields, if no fields are found, current time field(s) are returned
 def tag(text):
+    month_object = []
+    day_object = [] 
 
     def findYear(text):
         found = reg1.findall(text)
@@ -197,7 +199,6 @@ def tag(text):
         today = date.today()
         for day in days:
             day = int(day)
-            pdb.set_trace()
             if day < currentDay:
                 months.append(int((today+timedelta(days=30)).month))
             else:
@@ -216,8 +217,10 @@ def tag(text):
 
     # return [findYear(text),findMonth(text),findDay(text),findHour(text),findMin(text),findSecond(text),findRelative(text)], stripText(text)
     #Changed to only return the day
+
     daysOut = findDay(text)
     monthsOut = findMonth_temp(daysOut)
+    pdb.set_trace()
     return daysOut, monthsOut
 
 # Hash function for week days to simplify the grounding task.

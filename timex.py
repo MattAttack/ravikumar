@@ -117,7 +117,7 @@ timex_found = []
 year_object = []
 month_object = []
 day_object = [] #returns a number which represents which date in a month, IE: 31 = march 31st
-hour_object = [] 
+hour_object = []
 minute_object = []
 second_object = []
 
@@ -132,7 +132,7 @@ def loadStopwords():
 
 #searches text for relevant fields, if no fields are found, current time field(s) are returned
 def tag(text):
-    
+
     def findYear(text):
         found = reg1.findall(text)
         for timex in found:
@@ -140,7 +140,7 @@ def tag(text):
 
         if not year_object:
             year_object.append(str(currentYear))
-        
+
         return year_object
 
     def findMonth(text):
@@ -150,11 +150,11 @@ def tag(text):
             month_object.append(str(cTimex))
         if not month_object:
             month_object.append(str(currentMonth))
+
         return month_object
 
     #Always looks towards the future
     def findDay(text):
-        pdb.set_trace()
         found = reg3.findall(text)
         for timex in found:
             cTimex = hashweekdays[timex[0:3].lower()]
@@ -174,7 +174,7 @@ def tag(text):
         for timex in found:
             cTimex = hashnum(timex)
             hour_object.append(str(cTimex))
-        #return empty array if no hour object found 
+        #return empty array if no hour object found
         # if not hour_object:
         #     hour_object.append(str(currentHour))
         return hour_object
@@ -191,7 +191,7 @@ def tag(text):
         found = reg5.findall(text)
         return found
 
-    #method which returns which month each day value corresponds to 
+    #method which returns which month each day value corresponds to
     def findMonth_temp(days):
         months = []
         today = date.today()
@@ -216,7 +216,7 @@ def tag(text):
     #Changed to only return the day
     daysOut = findDay(text)
     monthsOut = findMonth_temp(daysOut)
-    return daysOut,monthsOut
+    return daysOut, monthsOut
 
 # Hash function for week days to simplify the grounding task.
 # [Mon..Sun] -> [0..6]
@@ -236,7 +236,7 @@ def prepareHashMaps():
     for i in range(currentDayofWeek+1,7,1):
         days[i] = int((today+t).day)
         t = t + timedelta(days=1)
-   
+
 # Hash number in words into the corresponding integer value
 def hashnum(number):
     if re.match(r'one(?=\W|$)|(?<!\w)^a\b', number, re.IGNORECASE):

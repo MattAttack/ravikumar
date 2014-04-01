@@ -117,8 +117,20 @@ def parse_email(email_body):
     def get_possible_days(email_body):
         possible_days = []
         parsed_results = parse(email_body)
+
+        # TODO: What should I be expecting back here.
+        # The parse email function is returning the correct date in the wrap around
+        # but not the correct month.
+        pdb.set_trace()
         for month in parsed_results[1]:
             for date in parsed_results[0]:
+                # Quick **TEMP** fix, we need to discuss what's being returned
+                # from parse I don't think we are on the same page.
+                # This just increments the month by one if it is in the past.
+                if (datetime.datetime.now() >
+                    datetime.datetime(2014, int(month), int(date), 0, 0)):
+                    month = month + 1
+
                 possible_days.append( ('2014', month, date) )
 
         return possible_days
@@ -271,15 +283,15 @@ def check_for_new_emails_and_prompt():
     status, data = mail.search(None, 'ALL')     # Grab all the emails
     email_ids = data[0].split()                 # and their email ids
 
+    pdb.set_trace()
     # Scan the list from new to old.
-    for i in xrange(len(email_ids) - 1, 0, -1):
+    for i in range(len(email_ids) -1, -1, -1):
         email_id = email_ids[i]             # Fetch that email
         result, data = mail.fetch(email_id, "(RFC822)")
 
         raw_email = data[0][1]              # Turn it into an email object
         email_obj = email.message_from_string(raw_email)
 
-        pdb.set_trace()
         # Payload can either be a list (HTML & Reg Version), or just Reg
         if isinstance(email_obj._payload, list):
             body = email_obj._payload[0]._payload
@@ -300,12 +312,10 @@ def check_for_new_emails_and_prompt():
 def process_email(subject, body, sender):
 
     #check if this email requires a new appointment
-    pdb.set_trace()
     possible_times = parse_email(body)
     seen_emails.append( (subject, body) )
 
     if len(possible_times) > 0:
-        pdb.set_trace()
         print "\nProcessing Email:"
         print "\nSubject: %s" % subject
         print "From: %s" % sender

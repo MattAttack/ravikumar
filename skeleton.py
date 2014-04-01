@@ -17,6 +17,7 @@ from time import gmtime, strftime
 # Keeping track of data
 import pickle
 import os.path
+import re
 
 # Email Connection
 import imaplib
@@ -353,7 +354,7 @@ def schedule_calendar_event(time, title=None):
 
 def get_most_recent_email_body(e_body):
     email_pattern = e_pat = re.compile('([\w\-\.]+@(\w[\w\-]+\.)+[\w\-]+)')
-    return re.split(email_pattern, body)[0]
+    return re.split(email_pattern, e_body)[0]
 
 def main():
     create_connection()

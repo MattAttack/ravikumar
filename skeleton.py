@@ -306,6 +306,7 @@ def check_for_new_emails_and_prompt():
 def process_email(subject, body, sender):
 
     #check if this email requires a new appointment
+    body = get_most_recent_email_body(body)
     body = stripPunctuation(body)
     possible_times = parse_email(body)
     seen_emails.append( (subject, body) )
@@ -337,6 +338,10 @@ def schedule_calendar_event(time, title=None):
                              time[0].strftime("%Y-%m-%dT%H:%M:%S") + "-06:00",
                              time[1].strftime("%Y-%m-%dT%H:%M:%S") + "-06:00"
                              )
+
+def get_most_recent_email_body(e_body):
+    # Get rid of the extraneous junk
+    return e_body
 
 def main():
     create_connection()

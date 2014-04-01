@@ -266,11 +266,23 @@ def rank_times(times,email):
         time_str = str(time[0].hour)+"-"+str(time[1].minute)
         time_vectors[time_str] = timeVector
 
+    def log_updates():
+        global seen_emails, time_vectors, wordWeights
+        
+        def save(file_name, data):
+            with open(file_name, 'wb') as f:
+                pickle.dump(data, f)
+
+        save("time_vectors.p", time_vectors)
+        save("seen_emails.p", seen_emails)
+        save("wordWeights.p",wordWeights)
+    
     emailVector = calculateWordWeights(email,wordWeights,emailVector) #update the global count of all words/their weights
     rankResults = similarity_test(times,emailVector) #perform similarity tests for all vectors (time slots) which we have data for
     sortedResults = sortResults(rankResults ,times) #sort the results according to the similarity results
     user_choice = prompt_user(sortedResults) #ask the user which time they would actually like to schedule
     updateVector(user_choice,sortedResults,emailVector,time_vectors) # associate this email vector with the time the user has chosen
+    log_updates() #save updates
     return sortedResults, user_choice
 
 def check_for_new_emails_and_prompt():
@@ -309,7 +321,6 @@ def process_email(subject, body, sender):
     body = stripPunctuation(body)
     possible_times = parse_email(body)
     seen_emails.append( (subject, body) )
-    pdb.set_trace()
     if len(possible_times) > 0:
         print "\nProcessing Email:"
         print "\nSubject: %s" % subject

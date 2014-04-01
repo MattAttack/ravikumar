@@ -117,6 +117,7 @@ def parse_email(email_body):
 
     def get_possible_days(email_body):
         possible_days = []
+
         parsed_results = parse(email_body)
 
         assert(len(parsed_results[0]) == len(parsed_results[1]))
@@ -128,12 +129,12 @@ def parse_email(email_body):
         return possible_days
 
 
-    def get_possible_times_filtered(possible_days):
+    def get_possible_times_filtered(possible_days_p):
         possible_times = []         # Stores tuples (start_time, end_time)
         duration = 60               # Currently duration of event is an hour
 
         # Generate all the possible times for all the possible days
-        for possible_day in possible_days:
+        for possible_day in possible_days_p:
             day_start_str = time_object(possible_day[0], possible_day[1],
                                         possible_day[2], 0, 0, 0)
             day_end_str   = time_object(possible_day[0], possible_day[1],

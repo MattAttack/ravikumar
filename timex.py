@@ -196,7 +196,7 @@ def tag(text):
         today = date.today()
         for day in days:
             if day < currentDay:
-                append.months(int((today+timedelta(days=32)).month))
+                months.append(int((today+timedelta(days=32)).month))
             else:
                 months.append(int(today.month))
         return months

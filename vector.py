@@ -14,7 +14,7 @@ class vector():
 			self.data[word] = wordsFromEmail[word]
 
 	def similarityTest(self,vectorB,wordsWeights):
-		s = 0.01
+		s = self.smoothing
 		total = wordsWeights['totalNumbers']*1.0
 		#Formula for cosine similarity is A * B 
 		#						  		 -------

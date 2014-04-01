@@ -24,6 +24,7 @@ import email
 
 # Work with other scripts
 from timex import parse
+from timex import stripPunctuation
 from vector import vector
 
 # Debugging
@@ -288,6 +289,7 @@ def check_for_new_emails_and_prompt():
 def process_email(subject, body, sender):
 
     #check if this email requires a new appointment
+    body = stripPunctuation(body)
     possible_times = parse_email(body)
     seen_emails.append( (subject, body) )
     

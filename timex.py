@@ -8,6 +8,7 @@ import sys
 from time import gmtime, strftime
 import ipdb as pdb
 from datetime import *
+import string
 # Requires eGenix.com mx Base Distribution
 # http://www.egenix.com/products/python/mxBase/
 try:
@@ -482,6 +483,11 @@ def parse(text):
     prepareHashMaps()
     loadStopwords()
     return tag(text)
+
+def stripPunctuation(text):
+    text = text.lower()
+    text = text.translate(string.maketrans("",""), string.punctuation)
+    return text
     # print "Day object found: " + str(day_object)
     # print "Time object found: " + str(time_object)
     # print "Month object found: " + str(month_object)

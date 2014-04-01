@@ -6,8 +6,9 @@ import string
 import os
 import sys
 from time import gmtime, strftime
-import pdb
+import ipdb as pdb
 from datetime import *
+import string
 # Requires eGenix.com mx Base Distribution
 # http://www.egenix.com/products/python/mxBase/
 try:
@@ -16,7 +17,6 @@ except ImportError:
     print """
 Requires eGenix.com mx Base Distribution
 http://www.egenix.com/products/python/mxBase/"""
-
 
 
 # Predefined strings.
@@ -197,7 +197,7 @@ def tag(text):
         today = date.today()
         for day in days:
             if day < currentDay:
-                append.months(int((today+timedelta(days=32)).month))
+                months.append(int((today+timedelta(days=32)).month))
             else:
                 months.append(int(today.month))
         return months
@@ -484,6 +484,11 @@ def parse(text):
     prepareHashMaps()
     loadStopwords()
     return tag(text)
+
+def stripPunctuation(text):
+    text = text.lower()
+    text = text.translate(string.maketrans("",""), string.punctuation)
+    return text
     # print "Day object found: " + str(day_object)
     # print "Time object found: " + str(time_object)
     # print "Month object found: " + str(month_object)

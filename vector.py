@@ -1,10 +1,11 @@
 import pickle
 import math
+import ipdb as pdb
 
 class vector():
 	def __init__(self,wordsFromEmail,wordsWeights):
 		self.data = {}
-		self.smoothing = 0.9
+		self.smoothing = 0.5
 		self.initializeVector(wordsFromEmail,wordsWeights)
 
 	def initializeVector(self,wordsFromEmail,wordsWeights):
@@ -24,14 +25,17 @@ class vector():
 
 		#TODO: change type from float to cdecimal to prevent overflow errors
 		for word in wordsWeights.keys():
-			multiplier = (total/wordsWeights[word]) #calculate the weight of that word in real time, this weight is the inverse of popularity
 
-			num = num + (multiplier*self.data.get(word,s))*(multiplier*vectorB.data.get(word,s)) #multiply the number of occurences of each word by the word's respective weight
-			dA = dA * self.data.get(word,s)*multiplier
-			dB = dB * vectorB.data.get(word,s)*multiplier
+			#make sure both vectors have seen a word before:
+			if ( self.data.get(word,False) and vectorB.data.get(word,False) ):
+				multiplier = (total/(wordsWeights[word]*1.0)) #calculate the weight of that word in real time, this weight is the inverse of popularity
+				num = num + (multiplier*self.data.get(word,s))*(multiplier*vectorB.data.get(word,s)) #multiply the number of occurences of each word by the word's respective weight
+				dA = dA * self.data.get(word,s)*multiplier
+				dB = dB * vectorB.data.get(word,s)*multiplier
 
 		den = math.sqrt(dA)*math.sqrt(dB)
 		fraction = num/den
+		# pdb.set_trace()
 		return fraction
 
 	def appendVector(self, vectorB):

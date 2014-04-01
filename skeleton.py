@@ -24,6 +24,7 @@ import email
 
 # Work with other scripts
 from timex import parse
+from timex import stripPunctuation
 from vector import vector
 
 # Debugging
@@ -90,6 +91,7 @@ def load_variables():
     output_log   = load("output_log.p", output_log)
     stopwords    = load("stopwords.p",stopwords) #this file needs to be given to user, it will not be created
     wordWeights  = load("wordWeights.p",wordWeights)
+    pdb.set_trace()
 
 def log_updates():
     global seen_emails, time_vectors, output_log, wordWeights
@@ -234,12 +236,13 @@ def rank_times(times,email):
 
     def sortResults(rankedInOrder,times):
         #sort the results so that the top similarity scores are first then the unranked times
-        rankedInOrder = sorted(rankResults,key=rankResults.get,reverse=True)
+        rankedInOrder = sorted(rankResults,key=rankResults.get)
         unranked = []
         for time in times:
             if time not in rankedInOrder: #is this one of the top results? if not, add it to unranked list
                 unranked.append(time)
-
+        for t in rankedInOrder:
+            print "Time: %s, Score: %s"%(t,rankResults[t])
         rankedInOrder.extend(unranked) #combine ranked and unranked into one list
         return rankedInOrder
 
@@ -292,6 +295,7 @@ def check_for_new_emails_and_prompt():
         raw_email = data[0][1]              # Turn it into an email object
         email_obj = email.message_from_string(raw_email)
 
+        #TODO: fix bug where body is a list of message objects
         # Payload can either be a list (HTML & Reg Version), or just Reg
         if isinstance(email_obj._payload, list):
             body = email_obj._payload[0]._payload
@@ -312,6 +316,7 @@ def check_for_new_emails_and_prompt():
 def process_email(subject, body, sender):
 
     #check if this email requires a new appointment
+    body = stripPunctuation(body)
     possible_times = parse_email(body)
     seen_emails.append( (subject, body) )
 

@@ -21,6 +21,7 @@ import os.path
 # Email Connection
 import imaplib
 import email
+import re
 
 # Work with other scripts
 from timex import parse
@@ -232,8 +233,8 @@ def rank_times(times,email):
         for time in times:
             if time not in rankedInOrder: #is this one of the top results? if not, add it to unranked list
                 unranked.append(time)
-        for t in rankedInOrder:
-            print "Time: %s, Score: %s"%(t,rankResults[t])
+        # for t in rankedInOrder:
+            # print "Time: %s, Score: %s"%(t,rankResults[t])
         rankedInOrder.extend(unranked) #combine ranked and unranked into one list
         return rankedInOrder
 
@@ -242,7 +243,7 @@ def rank_times(times,email):
         # Print out the possible times, with an associated index
         print 'Please select a start time for your event: '
         for i, possible_time in enumerate(times[:limit]):
-            print '%02d :: %s - %s' % (i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
+            print '%d :: %s - %s' % (i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
 
         user_selection = int(input("\nSelect Most Optimal Time: "))
         print("\n")
@@ -308,7 +309,6 @@ def check_for_new_emails_and_prompt():
         sender = email_obj["From"]
 
         # Seen this email before? -> Seen all older. Terminate
-        pdb.set_trace()
         if ( hash(str(subj)), hash(str(body)) ) in seen_emails:
             return
 
@@ -353,7 +353,7 @@ def schedule_calendar_event(time, title=None):
 
 def get_most_recent_email_body(e_body):
     email_pattern = e_pat = re.compile('([\w\-\.]+@(\w[\w\-]+\.)+[\w\-]+)')
-    return re.split(email_pattern, body)[0]
+    return re.split(email_pattern, e_body)[0]
 
 def main():
     create_connection()

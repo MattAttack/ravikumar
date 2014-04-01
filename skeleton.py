@@ -91,7 +91,6 @@ def load_variables():
     output_log   = load("output_log.p", output_log)
     stopwords    = load("stopwords.p",stopwords) #this file needs to be given to user, it will not be created
     wordWeights  = load("wordWeights.p",wordWeights)
-    pdb.set_trace()
 
 def log_updates():
     global seen_emails, time_vectors, output_log, wordWeights
@@ -120,20 +119,11 @@ def parse_email(email_body):
         possible_days = []
         parsed_results = parse(email_body)
 
-        # TODO: What should I be expecting back here.
-        # The parse email function is returning the correct date in the wrap around
-        # but not the correct month.
-        pdb.set_trace()
-        for month in parsed_results[1]:
-            for date in parsed_results[0]:
-                # Quick **TEMP** fix, we need to discuss what's being returned
-                # from parse I don't think we are on the same page.
-                # This just increments the month by one if it is in the past.
-                if (datetime.datetime.now() >
-                    datetime.datetime(2014, int(month), int(date), 0, 0)):
-                    month = month + 1
-
-                possible_days.append( ('2014', month, date) )
+        assert(len(parsed_results[0]) == len(parsed_results[1]))
+        for i in range(len(parsed_results[0])):
+                possible_days.append( ('2014',
+                                     parsed_results[1][i],
+                                     parsed_results[0][i]) )
 
         return possible_days
 
@@ -286,7 +276,6 @@ def check_for_new_emails_and_prompt():
     status, data = mail.search(None, 'ALL')     # Grab all the emails
     email_ids = data[0].split()                 # and their email ids
 
-    pdb.set_trace()
     # Scan the list from new to old.
     for i in range(len(email_ids) -1, -1, -1):
         email_id = email_ids[i]             # Fetch that email
@@ -297,10 +286,10 @@ def check_for_new_emails_and_prompt():
 
         #TODO: fix bug where body is a list of message objects
         # Payload can either be a list (HTML & Reg Version), or just Reg
-        if isinstance(email_obj._payload, list):
-            body = email_obj._payload[0]._payload
-        else:
-            body = email_obj._payload
+        while isinstance(email_obj._payload, list):
+            email_obj = email_obj._payload[0]
+
+        body = email_obj._payload
 
         subj   = email_obj["Subject"]
         sender = email_obj["From"]

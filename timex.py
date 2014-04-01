@@ -196,8 +196,10 @@ def tag(text):
         months = []
         today = date.today()
         for day in days:
+            day = int(day)
+            pdb.set_trace()
             if day < currentDay:
-                months.append(int((today+timedelta(days=32)).month))
+                months.append(int((today+timedelta(days=30)).month))
             else:
                 months.append(int(today.month))
         return months

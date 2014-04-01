@@ -91,7 +91,6 @@ def load_variables():
     output_log   = load("output_log.p", output_log)
     stopwords    = load("stopwords.p",stopwords) #this file needs to be given to user, it will not be created
     wordWeights  = load("wordWeights.p",wordWeights)
-    pdb.set_trace()
 
 def log_updates():
     global seen_emails, time_vectors, output_log, wordWeights
@@ -123,7 +122,6 @@ def parse_email(email_body):
         # TODO: What should I be expecting back here.
         # The parse email function is returning the correct date in the wrap around
         # but not the correct month.
-        pdb.set_trace()
         for month in parsed_results[1]:
             for date in parsed_results[0]:
                 # Quick **TEMP** fix, we need to discuss what's being returned
@@ -286,7 +284,6 @@ def check_for_new_emails_and_prompt():
     status, data = mail.search(None, 'ALL')     # Grab all the emails
     email_ids = data[0].split()                 # and their email ids
 
-    pdb.set_trace()
     # Scan the list from new to old.
     for i in range(len(email_ids) -1, -1, -1):
         email_id = email_ids[i]             # Fetch that email

@@ -268,7 +268,7 @@ def rank_times(times,email):
 
     def log_changes():
         global seen_emails, time_vectors, wordWeights
-        
+
         def save(file_name, data):
             with open(file_name, 'wb') as f:
                 pickle.dump(data, f)
@@ -276,7 +276,7 @@ def rank_times(times,email):
         save("time_vectors.p", time_vectors)
         save("seen_emails.p", seen_emails)
         save("wordWeights.p",wordWeights)
-    
+
     emailVector = calculateWordWeights(email,wordWeights,emailVector) #update the global count of all words/their weights
     rankResults = similarity_test(times,emailVector) #perform similarity tests for all vectors (time slots) which we have data for
     sortedResults = sortResults(rankResults ,times) #sort the results according to the similarity results
@@ -309,7 +309,7 @@ def check_for_new_emails_and_prompt():
 
         # Seen this email before? -> Seen all older. Terminate
         pdb.set_trace()
-        if (str(subj), body) in seen_emails:
+        if ( hash(str(subj)), hash(str(body)) ) in seen_emails:
             return
 
         # If you haven't seen this before handle accordingly
@@ -317,12 +317,12 @@ def check_for_new_emails_and_prompt():
 
 
 def process_email(subject, body, sender):
-    seen_emails.append( (str(subject), body) )
+    seen_emails.append( (hash(str(subject)), hash(str(body))) )
     #check if this email requires a new appointment
     body = get_most_recent_email_body(body)
     body = stripPunctuation(body)
     possible_times = parse_email(body)
-    
+
     if len(possible_times) > 0:
         print "\nProcessing Email:"
         print "\nSubject: %s" % subject

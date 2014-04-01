@@ -42,8 +42,22 @@ stopwords = {}
 # Credentials to log into Gmail/GCal API
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')  # Dummy Google API Key
 mail = imaplib.IMAP4_SSL('imap.gmail.com')
-username = 'utcaldummy'
-password = 'utcaldummy123'
+
+# Read in the credentials from an input file
+f = open("credentials.txt")
+creds = f.readlines()
+try:
+    assert(len(creds) == 2)
+    username = creds[0].strip()
+    password = creds[1].strip()
+except:
+    print """
+        Error parsing credentials.txt.
+
+        credentials.txt should contain the username and password
+        each on its own line and nothing else.
+    """
+    sys.exit()
 
 
 # Authenticate for the calendar and email to be able to access the user's
@@ -149,7 +163,7 @@ def parse_email(email_body):
 
         return feed.entry
 
-    
+
 
     # Acutal function logic
     days = get_possible_days(email_body)
@@ -171,12 +185,12 @@ def rank_times(times,email):
             return time_vectors[time]
         #if not, return nothine
         else:
-            return None   
+            return None
 
     def calculateWordWeights(email,wordWeights,emailVector):
         importantWordsFromEmail = {}
         sum = 0
-        
+
         #count the number of words that are not stopwords and how often they occur
         for word in email.split():
             #TODO: Use regex to remove all punctuation here
@@ -194,7 +208,7 @@ def rank_times(times,email):
         #create a vector representing the email
         emailVector = vector(importantWordsFromEmail,wordWeights)
         return emailVector
-    
+
 
     def similarity_test(times,emailVector):
         rankResults = {}
@@ -219,7 +233,7 @@ def rank_times(times,email):
             print "Time: %s, Score: %s"%(t,rankResults[t])
         rankedInOrder.extend(unranked) #combine ranked and unranked into one list
         return rankedInOrder
-    
+
     def prompt_user(times):
         limit = 50
         # Print out the possible times, with an associated index
@@ -246,14 +260,14 @@ def rank_times(times,email):
             timeVector = emailVector
         else:
             timeVector.appendVector(emailVector)
-        time_str = str(time[0].hour)+"-"+str(time[1].minute)    
+        time_str = str(time[0].hour)+"-"+str(time[1].minute)
         time_vectors[time_str] = timeVector
 
     emailVector = calculateWordWeights(email,wordWeights,emailVector) #update the global count of all words/their weights
     rankResults = similarity_test(times,emailVector) #perform similarity tests for all vectors (time slots) which we have data for
     sortedResults = sortResults(rankResults ,times) #sort the results according to the similarity results
     user_choice = prompt_user(sortedResults) #ask the user which time they would actually like to schedule
-    updateVector(user_choice,sortedResults,emailVector,time_vectors) # associate this email vector with the time the user has chosen    
+    updateVector(user_choice,sortedResults,emailVector,time_vectors) # associate this email vector with the time the user has chosen
     return sortedResults, user_choice
 
 def check_for_new_emails_and_prompt():
@@ -292,7 +306,7 @@ def process_email(subject, body, sender):
     body = stripPunctuation(body)
     possible_times = parse_email(body)
     seen_emails.append( (subject, body) )
-    
+
     if len(possible_times) > 0:
         print "\nProcessing Email:"
         print "\nSubject: %s" % subject

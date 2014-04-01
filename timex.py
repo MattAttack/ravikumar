@@ -220,7 +220,6 @@ def tag(text):
 
     daysOut = findDay(text)
     monthsOut = findMonth_temp(daysOut)
-    pdb.set_trace()
     return daysOut, monthsOut
 
 # Hash function for week days to simplify the grounding task.

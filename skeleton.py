@@ -412,7 +412,6 @@ def initialize_seen_email():
     status, data = mail.search(None, 'ALL')     # Grab all the emails
     email_ids = data[0].split()                 # and their email ids
 
-    print "retrieved email ids"
     # Scan the list from new to old.
     max_emails = 5
     iteration = 0
@@ -421,10 +420,8 @@ def initialize_seen_email():
             break
 
         email_id = email_ids[i]             # Fetch that email
-        print "starting to retrieve"
         result, data = mail.fetch(email_id, "(RFC822)")
 
-        print "retrieved"
 
         raw_email = data[0][1]              # Turn it into an email object
         email_obj = email.message_from_string(raw_email)

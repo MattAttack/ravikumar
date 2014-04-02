@@ -30,6 +30,7 @@ from vector import vector
 
 # Debugging
 import ipdb as pdb
+actuallySchedule = False
 
 # Global variables for vector calculations
 wordWeights = {}
@@ -71,7 +72,7 @@ def create_connection():
     mail.list()
     mail.select("INBOX")
 
-    print 'Successfully connected to email and calendar'
+    print 'Successfully connected to email and calendar, calendar updating is currently set to %s'%(actuallySchedule)
 
 def load_variables():
     global seen_emails, time_vectors, output_log, stopwords, wordWeights
@@ -245,15 +246,15 @@ def rank_times(times,email):
         for i, possible_time in enumerate(times[:limit]):
             print '%d :: %s - %s' % (i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
 
-        user_selection = int(input("\nSelect Most Optimal Time: "))
+        user_selection = int(input("\nSelect Most Optimal Time or Enter -1 for No Appointment: "))
         print("\n")
 
-        while user_selection == -1:
-            for i, possible_time in enumerate(times[limit:limit+10]):
-                print '%02d :: %s - %s' % (limit + i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
-            user_selection = int(input("\nSelect Most Optimal Time: "))
-            limit += 10
-            print "\n"
+        # while user_selection == -1:
+        #     for i, possible_time in enumerate(times[limit:limit+10]):
+        #         print '%02d :: %s - %s' % (limit + i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
+        #     user_selection = int(input("\nSelect Most Optimal Time or Return -1 For No Appointment: "))
+        #     limit += 10
+        #     print "\n"
 
         return user_selection
 
@@ -282,9 +283,13 @@ def rank_times(times,email):
     rankResults = similarity_test(times,emailVector) #perform similarity tests for all vectors (time slots) which we have data for
     sortedResults = sortResults(rankResults ,times) #sort the results according to the similarity results
     user_choice = prompt_user(sortedResults) #ask the user which time they would actually like to schedule
-    updateVector(user_choice,sortedResults,emailVector,time_vectors) # associate this email vector with the time the user has chosen
-    log_changes() #save updates
-    return sortedResults, user_choice
+    if user_choice != -1:
+        updateVector(user_choice,sortedResults,emailVector,time_vectors) # associate this email vector with the time the user has chosen
+        
+        return sortedResults, user_choice
+    else:
+        log_changes() #save updates
+        return False, False
 
 def check_for_new_emails_and_prompt():
     status, data = mail.search(None, 'ALL')     # Grab all the emails
@@ -330,10 +335,12 @@ def process_email(subject, body, sender):
         print "%s" % body
         possible_times,user_selection = rank_times(possible_times,body)
         # store_user_choice(user_selection)
-        schedule_calendar_event(possible_times[user_selection])
+        if possible_times and user_selection:
+            if actuallySchedule:
+                schedule_calendar_event(possible_times[user_selection])
 
-        # TODO: Append that body to the appropriate time vector
-        output_log.append( (possible_times, user_selection, body) )
+            # TODO: Append that body to the appropriate time vector
+            output_log.append( (possible_times, user_selection, body) )
 
 def schedule_calendar_event(time, title=None):
     event_title = ""

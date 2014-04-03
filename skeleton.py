@@ -386,6 +386,46 @@ def get_most_recent_email_body(e_body):
     email_pattern = e_pat = re.compile('([\w\-\.]+@(\w[\w\-]+\.)+[\w\-]+)')
     return re.split(email_pattern, e_body)[0]
 
+def initialize_seen_email():
+    global seen_emails
+
+    def save(file_name, data):
+            with open(file_name, 'wb') as f:
+                pickle.dump(data, f)
+
+    seen_emails = []
+    status, data = mail.search(None, 'ALL')     # Grab all the emails
+    email_ids = data[0].split()                 # and their email ids
+
+    # Scan the list from new to old.
+    max_emails = 50
+    iteration = 0
+    for i in range(len(email_ids) -1, -1, -1):
+        if iteration > max_emails:
+            break
+
+        email_id = email_ids[i]             # Fetch that email
+        result, data = mail.fetch(email_id, "(RFC822)")
+
+        raw_email = data[0][1]              # Turn it into an email object
+        email_obj = email.message_from_string(raw_email)
+
+        #TODO: fix bug where body is a list of message objects
+        # Payload can either be a list (HTML & Reg Version), or just Reg
+        while isinstance(email_obj._payload, list):
+            email_obj = email_obj._payload[0]
+
+        body = email_obj._payload
+
+        subj   = email_obj["Subject"]
+        sender = email_obj["From"]
+
+        # Seen this email before? -> Seen all older. Terminate
+        seen_emails.append( (hash(str(subj)), hash(str(body))) )
+
+    save("seen_emails.p", seen_emails)
+
+
 def main():
     create_connection()
     load_variables()

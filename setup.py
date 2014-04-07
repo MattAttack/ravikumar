@@ -10,10 +10,10 @@ print """
 
     We are ** not ** able to see your email or password.
 """
+import getpass
 
 username = raw_input("Enter your email username (no @gmail.com): ")
-# TODO: Add get-pass to hide the password as the user enters it
-password = raw_input("Enter your email password: ")
+password = getpass.getpass("Enter your password (it will not appear as you type): ")
 
 f = open("credentials.txt", "w+")
 f.write(username + "\n")

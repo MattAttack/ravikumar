@@ -350,6 +350,7 @@ def check_for_new_emails_and_prompt():
 
 
 def process_email(subject, body, sender):
+    global output_log
     seen_emails.append( (hash(str(subject)), hash(str(body))) )
     #check if this email requires a new appointment
     body = get_most_recent_email_body(body)
@@ -374,7 +375,11 @@ def process_email(subject, body, sender):
                 schedule_calendar_event(possible_times[user_selection])
 
             # TODO: Append that body to the appropriate time vector
-            output_log.append( (possible_times, user_selection, body) )
+            prettyPossible_times = []
+            for time in possible_times:
+                temp = str(time[0])
+                prettyPossible_times.append(temp)
+            output_log.append( (prettyPossible_times, user_selection) )
 
 def schedule_calendar_event(time, title=None):
     event_title = ""

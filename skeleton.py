@@ -31,6 +31,7 @@ from vector import vector
 
 # Debugging
 import ipdb as pdb
+actuallySchedule = False
 
 # Global variables for vector calculations
 wordWeights = {}
@@ -72,7 +73,7 @@ def create_connection():
     mail.list()
     mail.select("INBOX")
 
-    print 'Successfully connected to email and calendar'
+    print 'Successfully connected to email and calendar, calendar updating is currently set to %s'%(actuallySchedule)
 
 def load_variables():
     global seen_emails, time_vectors, output_log, stopwords, wordWeights
@@ -254,6 +255,10 @@ def rank_times(times,email):
             except:
                 return False
 
+        limit = 50
+        # Print out the possible times, with an associated index
+        print 'Please select a start time for your event: '
+
         for i, possible_time in enumerate(times):
             if possible_time[2]:
                 print '%02d :: %s - %s \t*Conflict: %s from %s to %s' % (i,
@@ -267,7 +272,6 @@ def rank_times(times,email):
         print
 
         # Continue to prompt for value while it is not valid
-
         user_selection = ""
         while not isNumber(user_selection) or int(user_selection) < -1 or int(user_selection) >= len(times):
             user_selection = raw_input("Select Most Optimal Time (Enter -1 to not schedule any event): ")
@@ -307,9 +311,13 @@ def rank_times(times,email):
     rankResults = similarity_test(times,emailVector) #perform similarity tests for all vectors (time slots) which we have data for
     sortedResults = sortResults(rankResults ,times) #sort the results according to the similarity results
     user_choice = prompt_user(sortedResults) #ask the user which time they would actually like to schedule
-    updateVector(user_choice,sortedResults,emailVector,time_vectors) # associate this email vector with the time the user has chosen
-    log_changes() #save updates
-    return sortedResults, user_choice
+    if user_choice != -1:
+        updateVector(user_choice,sortedResults,emailVector,time_vectors) # associate this email vector with the time the user has chosen
+        
+        return sortedResults, user_choice
+    else:
+        log_changes() #save updates
+        return False, False
 
 def check_for_new_emails_and_prompt():
     status, data = mail.search(None, 'ALL')     # Grab all the emails
@@ -342,6 +350,7 @@ def check_for_new_emails_and_prompt():
 
 
 def process_email(subject, body, sender):
+    global output_log
     seen_emails.append( (hash(str(subject)), hash(str(body))) )
     #check if this email requires a new appointment
     body = get_most_recent_email_body(body)
@@ -361,10 +370,16 @@ def process_email(subject, body, sender):
             return
 
         # store_user_choice(user_selection)
-        schedule_calendar_event(possible_times[user_selection])
+        if possible_times and user_selection:
+            if actuallySchedule:
+                schedule_calendar_event(possible_times[user_selection])
 
-        # TODO: Append that body to the appropriate time vector
-        output_log.append( (possible_times, user_selection, body) )
+            # TODO: Append that body to the appropriate time vector
+            prettyPossible_times = []
+            for time in possible_times:
+                temp = str(time[0])
+                prettyPossible_times.append(temp)
+            output_log.append( (prettyPossible_times, user_selection) )
 
 def schedule_calendar_event(time, title=None):
     event_title = ""

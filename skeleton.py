@@ -313,7 +313,7 @@ def rank_times(times,email):
     user_choice = prompt_user(sortedResults) #ask the user which time they would actually like to schedule
     if user_choice != -1:
         updateVector(user_choice,sortedResults,emailVector,time_vectors) # associate this email vector with the time the user has chosen
-        
+
         return sortedResults, user_choice
     else:
         log_changes() #save updates
@@ -412,15 +412,19 @@ def initialize_seen_email():
     status, data = mail.search(None, 'ALL')     # Grab all the emails
     email_ids = data[0].split()                 # and their email ids
 
+    print "retrieved email ids"
     # Scan the list from new to old.
-    max_emails = 50
+    max_emails = 5
     iteration = 0
     for i in range(len(email_ids) -1, -1, -1):
         if iteration > max_emails:
             break
 
         email_id = email_ids[i]             # Fetch that email
+        print "starting to retrieve"
         result, data = mail.fetch(email_id, "(RFC822)")
+
+        print "retrieved"
 
         raw_email = data[0][1]              # Turn it into an email object
         email_obj = email.message_from_string(raw_email)
@@ -437,6 +441,8 @@ def initialize_seen_email():
 
         # Seen this email before? -> Seen all older. Terminate
         seen_emails.append( (hash(str(subj)), hash(str(body))) )
+
+        iteration += 1
 
     save("seen_emails.p", seen_emails)
 

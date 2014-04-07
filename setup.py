@@ -12,6 +12,7 @@ print """
 """
 
 username = raw_input("Enter your email username (no @gmail.com): ")
+# TODO: Add get-pass to hide the password as the user enters it
 password = raw_input("Enter your email password: ")
 
 f = open("credentials.txt", "w+")

@@ -157,11 +157,11 @@ def parse_email(email_body):
 
                 # Before old times were filtered out
                 # Filter out the bad times for that event
-                # possible_times = filter(lambda time: (time[1] <= conflict_start or conflict_end <= time[0]), possible_times)
+                possible_times = filter(lambda time: (time[1] <= conflict_start or conflict_end <= time[0]), possible_times)
 
                 # List comprehension
                 # Third possible time element is the name of the conflict. That is added to the list.
-                possible_times = [(time[0], time[1], time[2]) if (time[1] <= conflict_start or conflict_end <= time[0]) else (time[0], time[1], e_conflict) for time in possible_times]
+                # possible_times = [(time[0], time[1], time[2]) if (time[1] <= conflict_start or conflict_end <= time[0]) else (time[0], time[1], e_conflict) for time in possible_times]
         return possible_times
 
     def findConflicts(start_date, end_date):

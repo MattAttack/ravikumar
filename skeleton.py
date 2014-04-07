@@ -17,6 +17,7 @@ from time import gmtime, strftime
 # Keeping track of data
 import pickle
 import os.path
+import re
 
 # Email Connection
 import imaplib
@@ -240,21 +241,34 @@ def rank_times(times,email):
         return rankedInOrder
 
     def prompt_user(times):
+
+        def isNumber(str):
+            try:
+                int(str)
+                return True
+            except:
+                return False
+
         limit = 50
         # Print out the possible times, with an associated index
         print 'Please select a start time for your event: '
-        for i, possible_time in enumerate(times[:limit]):
-            print '%d :: %s - %s' % (i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
 
-        user_selection = int(input("\nSelect Most Optimal Time or Enter -1 for No Appointment: "))
-        print("\n")
+        for i, possible_time in enumerate(times):
+            print '%02d :: %s - %s' % (i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
+        print
 
-        # while user_selection == -1:
-        #     for i, possible_time in enumerate(times[limit:limit+10]):
-        #         print '%02d :: %s - %s' % (limit + i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
-        #     user_selection = int(input("\nSelect Most Optimal Time or Return -1 For No Appointment: "))
-        #     limit += 10
-        #     print "\n"
+        # Continue to prompt for value while it is not valid
+        user_selection = ""
+        while not isNumber(user_selection) or int(user_selection) < -1 or int(user_selection) >= len(times):
+            user_selection = raw_input("Select Most Optimal Time (Enter -1 to not schedule any event): ")
+
+        try:
+            user_selection = int(user_selection)
+            if (user_selection == -1):
+                return user_selection
+        except:
+            print("Invalid input. Please enter a valid time")
+        print "\n"
 
         return user_selection
 
@@ -333,7 +347,13 @@ def process_email(subject, body, sender):
         print "\nSubject: %s" % subject
         print "From: %s" % sender
         print "%s" % body
-        possible_times,user_selection = rank_times(possible_times,body)
+        possible_times, user_selection = rank_times(possible_times,body)
+
+        # Catch the case where user_selection is -1
+        if (user_selection == -1):
+            print("\nNo event scheduled for email.")
+            return
+
         # store_user_choice(user_selection)
         if possible_times and user_selection:
             if actuallySchedule:

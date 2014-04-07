@@ -114,7 +114,7 @@ def time_object(year, month, day, hour, minute, second):
     minute = "%02d" % int(minute)
     second = "%02d" % int(second)
 
-    return '%s-%s-%sT%s:%s:%s-06:00' % (year, month, day, hour, minute, second)
+    return '%s-%s-%sT%s:%s:%s-05:00' % (year, month, day, hour, minute, second)
 
 def parse_email(email_body):
 
@@ -147,16 +147,22 @@ def parse_email(email_body):
             day_end_time   = parser.parse(day_end_str)
 
             while(day_start_time < day_end_time):
-                new_possible_time = (day_start_time, day_start_time + datetime.timedelta(minutes=duration))
+                new_possible_time = (day_start_time, day_start_time + datetime.timedelta(minutes=duration), None)
                 possible_times.append(new_possible_time)
                 day_start_time += datetime.timedelta(minutes=30)
+
             # Faster to filter out conflicts on per day basis than at the end
             for e_conflict in findConflicts(day_start_str, day_end_str):
                 conflict_start = parser.parse(e_conflict.when[0].start)
                 conflict_end   = parser.parse(e_conflict.when[0].end)
 
+                # Before old times were filtered out
                 # Filter out the bad times for that event
                 possible_times = filter(lambda time: (time[1] <= conflict_start or conflict_end <= time[0]), possible_times)
+
+                # List comprehension
+                # Third possible time element is the name of the conflict. That is added to the list.
+                # possible_times = [(time[0], time[1], time[2]) if (time[1] <= conflict_start or conflict_end <= time[0]) else (time[0], time[1], e_conflict) for time in possible_times]
         return possible_times
 
     def findConflicts(start_date, end_date):
@@ -254,7 +260,15 @@ def rank_times(times,email):
         print 'Please select a start time for your event: '
 
         for i, possible_time in enumerate(times):
-            print '%02d :: %s - %s' % (i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
+            if possible_time[2]:
+                print '%02d :: %s - %s \t*Conflict: %s from %s to %s' % (i,
+                                                                         possible_time[0].strftime("%a %m-%d %I:%M%p"),
+                                                                         possible_time[1].strftime("%I:%M%p"),
+                                                                         possible_time[2].title.text,
+                                                                         parser.parse(possible_time[2].when[0].start).strftime("%I:%M%p"),
+                                                                         parser.parse(possible_time[2].when[0].end).strftime("%I:%M%p"))
+            else:
+                print '%02d :: %s - %s' % (i, possible_time[0].strftime("%a %m-%d %I:%M%p"), possible_time[1].strftime("%I:%M%p"))
         print
 
         # Continue to prompt for value while it is not valid
@@ -374,13 +388,53 @@ def schedule_calendar_event(time, title=None):
                              event_title,
                              None,
                              None,
-                             time[0].strftime("%Y-%m-%dT%H:%M:%S") + "-06:00",
-                             time[1].strftime("%Y-%m-%dT%H:%M:%S") + "-06:00"
+                             time[0].strftime("%Y-%m-%dT%H:%M:%S") + "-05:00",
+                             time[1].strftime("%Y-%m-%dT%H:%M:%S") + "-05:00"
                              )
 
 def get_most_recent_email_body(e_body):
     email_pattern = e_pat = re.compile('([\w\-\.]+@(\w[\w\-]+\.)+[\w\-]+)')
     return re.split(email_pattern, e_body)[0]
+
+def initialize_seen_email():
+    global seen_emails
+
+    def save(file_name, data):
+            with open(file_name, 'wb') as f:
+                pickle.dump(data, f)
+
+    seen_emails = []
+    status, data = mail.search(None, 'ALL')     # Grab all the emails
+    email_ids = data[0].split()                 # and their email ids
+
+    # Scan the list from new to old.
+    max_emails = 50
+    iteration = 0
+    for i in range(len(email_ids) -1, -1, -1):
+        if iteration > max_emails:
+            break
+
+        email_id = email_ids[i]             # Fetch that email
+        result, data = mail.fetch(email_id, "(RFC822)")
+
+        raw_email = data[0][1]              # Turn it into an email object
+        email_obj = email.message_from_string(raw_email)
+
+        #TODO: fix bug where body is a list of message objects
+        # Payload can either be a list (HTML & Reg Version), or just Reg
+        while isinstance(email_obj._payload, list):
+            email_obj = email_obj._payload[0]
+
+        body = email_obj._payload
+
+        subj   = email_obj["Subject"]
+        sender = email_obj["From"]
+
+        # Seen this email before? -> Seen all older. Terminate
+        seen_emails.append( (hash(str(subj)), hash(str(body))) )
+
+    save("seen_emails.p", seen_emails)
+
 
 def main():
     create_connection()

@@ -1,6 +1,4 @@
 # The following is a setup script for the magic.
-#
-#
 
 print """
     Now we are going to set up your email credentials so we can access
@@ -14,12 +12,14 @@ print """
 """
 
 username = raw_input("Enter your email username (no @gmail.com): ")
+# TODO: Add get-pass to hide the password as the user enters it
 password = raw_input("Enter your email password: ")
 
-f = open("credentials.txt", "w")
+f = open("credentials.txt", "w+")
 f.write(username + "\n")
 f.write(password + "\n")
 f.close()
+
 
 print """
     credentials.txt created.
@@ -27,7 +27,17 @@ print """
     The first line of credentials.txt is your email username, and
     the second line of the .txt file is your password.
 
-    You should now be able to run the program by typing in the following:
+
+    Now accessing your email and creating a checkpoint, so the program
+    knows what emails are new vs. old.
+"""
+
+import skeleton
+skeleton.create_connection()
+skeleton.initialize_seen_email()
+
+print """
+        You should now be able to run the program by typing in the following:
 
         python skeleton.py
 """

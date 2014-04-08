@@ -2,7 +2,6 @@ echo "\nWelcome to Matt and Jay's Calendar Client"
 echo ""
 echo "Let's begin."
 echo ""
-
 echo ""
 echo "You may be prompted for your password. This is to \ninstall the appropriate software to run the client."
 echo ""

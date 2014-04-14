@@ -388,34 +388,46 @@ def check_for_new_emails_and_prompt():
 def train_file(file_name):
     print "Training on File: %s" % file_name
     f = open(file_name, "r")
-    body = f.read()
-    print "%s" % body
+    body = strip_enron_body(f.readlines())
 
     possible_times = parse_email(stripPunctuation(body))
-    possible_times, user_selection = rank_times(possible_times, body, file_name)
+    if len(possible_times) > 0:
+        print "%s" % body
+        possible_times, user_selection = rank_times(possible_times, body,file_name)
 
-    if (user_selection[0] == -1):
-        print("\nNo event scheduled for email.")
-        return
+        if (user_selection[0] == -1):
+            print("\nNo event scheduled for email.")
+            return
 
 
-    training_results.append( (user_selection, possible_times, body) )
+        training_results.append( (user_selection, possible_times, body) )
 
 def test_file(file_name):
     print "Testing on File: %s" % file_name
     f = open(file_name, "r")
-    body = f.read()
-    print "%s" % body
+    body = strip_enron_body(f.readlines())
 
     possible_times = parse_email(stripPunctuation(body))
-    possible_times, user_selection = rank_times(possible_times, body, file_name)
+    if len(possible_times) > 0:
+        print "%s" % body
+        possible_times, user_selection = rank_times(possible_times, body,file_name)
 
-    if (user_selection == -1):
-        print("\nNo event scheduled for email.")
-        return
+        if (user_selection == -1):
+            print("\nNo event scheduled for email.")
+            return
 
 
-    testing_results.append( (user_selection, possible_times, body) )
+        testing_results.append( (user_selection, possible_times, body) )
+
+def strip_enron_body(body):
+    line_begins = ['Date:', 'Message-ID', 'Mime-Version:',
+        'Content-Type:', 'X-From:', 'X-To', 'X-cc', 'X-bcc', 'X-Folder',
+        'X-Origin:', 'X-FileName', 'Content-Transfer-Encoding:','From:', 'To', 'cc', 'bcc', 'Folder',
+        'Origin:', 'FileName','Sent:','X-Sent:']
+    result = body
+    for to_filter in line_begins:
+        result = filter(lambda n: not n.startswith(to_filter), result)
+    return "".join(result)
 
 def process_email(subject, body, sender):
     global output_log

@@ -378,30 +378,32 @@ def train_file(file_name):
     print "%s" % body
 
     possible_times = parse_email(stripPunctuation(body))
-    possible_times, user_selection = rank_times(possible_times, body)
+    if len(possible_times) > 0:
+        print "%s" % body
+        possible_times, user_selection = rank_times(possible_times, body)
+        if (user_selection[0] == -1):
+            print("\nNo event scheduled for email.")
+            return
 
-    if (user_selection[0] == -1):
-        print("\nNo event scheduled for email.")
-        return
 
-
-    training_results.append( (user_selection, possible_times, body) )
+        training_results.append( (user_selection, possible_times, body) )
 
 def test_file(file_name):
     print "Testing on File: %s" % file_name
     f = open(file_name, "r")
     body = strip_enron_body(f.readlines())
-    print "%s" % body
+
 
     possible_times = parse_email(stripPunctuation(body))
-    possible_times, user_selection = rank_times(possible_times, body)
+    if len(possible_times) > 0:
+        print "%s" % body
+        possible_times, user_selection = rank_times(possible_times, body)
+        if (user_selection[0] == -1):
+            print("\nNo event scheduled for email.")
+            return
 
-    if (user_selection[0] == -1):
-        print("\nNo event scheduled for email.")
-        return
 
-
-    testing_results.append( (user_selection, possible_times, body) )
+        testing_results.append( (user_selection, possible_times, body) )
 
 def process_email(subject, body, sender):
     global output_log

@@ -9,7 +9,7 @@ import gdata.calendar.client
 import gdata.acl.data
 import atom.data
 import time
-import useful
+# import useful
 import datetime
 from dateutil import parser
 from time import gmtime, strftime
@@ -31,7 +31,7 @@ from timex import stripPunctuation
 from vector import vector
 
 # Debugging
-import ipdb as pdb
+import pdb as pdb
 
 actuallySchedule = False
 
@@ -41,13 +41,12 @@ wordWeights = {}
 # Global variables for data logging
 training_results = []
 testing_results = []
+output_log = []
 
-seen_emails = []
-time_vectors = {}
-output_log  = []
+email_vectors = []
 stopwords = {}
 
-train_count, test_count = [1, 1]
+train_count, test_count = [2, 1]
 
 # Credentials to log into Gmail/GCal API
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')  # Dummy Google API Key
@@ -95,24 +94,19 @@ def load_variables():
         with open(fileName,'rb') as f:
                 return pickle.load(f)
 
-    time_vectors = load("time_vectors.p", time_vectors)
-    seen_emails  = load("seen_emails.p", seen_emails)
     output_log   = load("output_log.p", output_log)
     stopwords    = load("stopwords.p",stopwords) #this file needs to be given to user, it will not be created
     wordWeights  = load("wordWeights.p",wordWeights)
 
 def log_updates():
-    global seen_emails, time_vectors, output_log, wordWeights
+    global time_vectors, wordWeights, testing_results, training_results
 
     def save(file_name, data):
         with open(file_name, 'wb') as f:
             pickle.dump(data, f)
 
-    save("time_vectors.p", time_vectors)
-    save("seen_emails.p", seen_emails)
-    save("output_log.p", output_log)
+    #TODO: This will change to a folder of all seen emails
     save("wordWeights.p",wordWeights)
-
     save("training_results.p", training_results)
     save("testing_results.p", testing_results)
 
@@ -191,23 +185,13 @@ def parse_email(email_body):
     possible_free_times = get_possible_times_filtered(days)
     return possible_free_times
 
-def rank_times(times,email):
+def rank_times(times,email,file_name):
     global wordWeights
     global stopwords
-    global time_vectors
+    global email_vectors
     emailVector = None
 
-    #loads vector, creates one if necessary
-    def loadVector(time):
-        global time_vectors
-        time = str(time[0].hour)+"-"+str(time[1].minute) #string representation of time object
-        #check if the vector exists first
-        if time in time_vectors:
-            return time_vectors[time]
-        #if not, return nothine
-        else:
-            return None
-
+    #update count of words to properly compute cosine similarity
     def calculateWordWeights(email,wordWeights,emailVector):
         importantWordsFromEmail = {}
         sum = 0
@@ -230,30 +214,34 @@ def rank_times(times,email):
         emailVector = vector(importantWordsFromEmail,wordWeights)
         return emailVector
 
-
-    def similarity_test(times,emailVector):
+    def similarity_test(email_vectors,thisEmailVector):
         rankResults = {}
-        for time in times:
-            timeVector = loadVector(time)
-            #check if this time already has a vector
-
-            if timeVector != None:
-                #if it does, perform similarity calculations
-                simScore = timeVector.similarityTest(emailVector,wordWeights)
-                rankResults[time] = simScore
+        #loop through all emails
+        for tempEmail in email_vectors:
+            #perform similarity
+            simScore = thisEmailVector.similarityTest(tempEmail,wordWeights)
+            #store sim score
+            rankResults[tempEmail] = simScore
         return rankResults
 
-    def sortResults(rankedInOrder,times):
+    def sortResults(rankResults,times):
         #sort the results so that the top similarity scores are first then the unranked times
         rankedInOrder = sorted(rankResults,key=rankResults.get)
+        #take the 3 nearest neighbors
+        nearestNeighbors = rankedInOrder[0:3]
+        #compute borda count
+        allTimes = {}
+        for vector in nearestNeighbors:
+            allTimes[vector.topTimes[0]] = allTimes.get(vector.topTimes[0],0)+3
+            allTimes[vector.topTimes[1]] = allTimes.get(vector.topTimes[1],0)+2
+            allTimes[vector.topTimes[2]] = allTimes.get(vector.topTimes[2],0)+1
+        sortedTimes = sorted(allTimes,key=allTimes.get,reverse=True)
         unranked = []
         for time in times:
-            if time not in rankedInOrder: #is this one of the top results? if not, add it to unranked list
+            if time not in sortedTimes: #is this one of the top results? if not, add it to unranked list
                 unranked.append(time)
-        # for t in rankedInOrder:
-            # print "Time: %s, Score: %s"%(t,rankResults[t])
-        rankedInOrder.extend(unranked) #combine ranked and unranked into one list
-        return rankedInOrder
+        sortedTimes.extend(unranked) #combine ranked and unranked into one list
+        return sortedTimes
 
     def prompt_user(times):
 
@@ -281,47 +269,51 @@ def rank_times(times,email):
         print
 
         # Continue to prompt for value while it is not valid
-        user_selection = ""
-        while not isNumber(user_selection) or int(user_selection) < -1 or int(user_selection) >= len(times):
-            user_selection = raw_input("Select Most Optimal Time (Enter -1 to not schedule any event): ")
-
-        try:
-            user_selection = int(user_selection)
-            if (user_selection == -1):
-                return user_selection
-        except:
-            print("Invalid input. Please enter a valid time")
-        print "\n"
+        user_selection = []
+        selection = ""
+        currentCount = 1
+        while currentCount <= 3:
+            selection = ""
+            while not isNumber(selection) or int(selection) < -1 or int(selection) >= len(times):
+                selection = raw_input("Select Your Number %s Most Optimal Time (Enter -1 to not schedule any event): "%currentCount)
+            try:
+                selection = int(selection)
+                user_selection.append(selection)
+                currentCount= currentCount + 1
+            except:
+                print("Invalid input. Please enter a valid time")
+            print "\n"
 
         return user_selection
 
-    def updateVector(user_choice,sortedResults,emailVector,time_vectors):
-        time = sortedResults[user_choice]
-        timeVector = loadVector(time)
-        if timeVector == None:
-            timeVector = emailVector
-        else:
-            timeVector.appendVector(emailVector)
-        time_str = str(time[0].hour)+"-"+str(time[1].minute)
-        time_vectors[time_str] = timeVector
+    def saveEmailVector(user_choice,sortedResults,emailVector,email_vectors,file_name):
+        #top 3 counts, will be used for borda calculations
+        time1 = sortedResults[user_choice[0]]
+        time2 = sortedResults[user_choice[1]]
+        time3 = sortedResults[user_choice[2]]
+        emailVector.addTopTimes(time1,time2,time3)
+        file_name = file_name.replace('\\','')
+        file_name = 'email_vectors\\' + file_name
+        #save this email to disk
+        with open(file_name, 'wb') as f:
+            pickle.dump(emailVector,f)
+        email_vectors.append(emailVector)
 
     def log_changes():
-        global seen_emails, time_vectors, wordWeights
+        global wordWeights
 
         def save(file_name, data):
             with open(file_name, 'wb') as f:
                 pickle.dump(data, f)
 
-        save("time_vectors.p", time_vectors)
-        save("seen_emails.p", seen_emails)
         save("wordWeights.p",wordWeights)
 
     emailVector = calculateWordWeights(email,wordWeights,emailVector) #update the global count of all words/their weights
-    rankResults = similarity_test(times,emailVector) #perform similarity tests for all vectors (time slots) which we have data for
+    rankResults = similarity_test(email_vectors,emailVector) #perform similarity tests for all vectors (time slots) which we have data for
     sortedResults = sortResults(rankResults ,times) #sort the results according to the similarity results
     user_choice = prompt_user(sortedResults) #ask the user which time they would actually like to schedule
-    if user_choice != -1:
-        updateVector(user_choice,sortedResults,emailVector,time_vectors) # associate this email vector with the time the user has chosen
+    if user_choice[0] != -1:
+        saveEmailVector(user_choice,sortedResults,emailVector,email_vectors,file_name) # associate this email vector with the time the user has chosen
 
         return sortedResults, user_choice
     else:
@@ -377,9 +369,9 @@ def train_file(file_name):
     print "%s" % body
 
     possible_times = parse_email(stripPunctuation(body))
-    possible_times, user_selection = rank_times(possible_times, body)
+    possible_times, user_selection = rank_times(possible_times, body, file_name)
 
-    if (user_selection == -1):
+    if (user_selection[0] == -1):
         print("\nNo event scheduled for email.")
         return
 
@@ -393,7 +385,7 @@ def test_file(file_name):
     print "%s" % body
 
     possible_times = parse_email(stripPunctuation(body))
-    possible_times, user_selection = rank_times(possible_times, body)
+    possible_times, user_selection = rank_times(possible_times, body, file_name)
 
     if (user_selection == -1):
         print("\nNo event scheduled for email.")
@@ -435,21 +427,21 @@ def process_email(subject, body, sender):
                 prettyPossible_times.append(temp)
             output_log.append( (prettyPossible_times, user_selection) )
 
-def schedule_calendar_event(time, title=None):
-    event_title = ""
-    if (title == None):
-        while not event_title:
-            event_title = raw_input("What would you like to call your event: ")
-    else:
-        event_title = title
+# def schedule_calendar_event(time, title=None):
+#     event_title = ""
+#     if (title == None):
+#         while not event_title:
+#             event_title = raw_input("What would you like to call your event: ")
+#     else:
+#         event_title = title
 
-    useful.InsertSingleEvent(client,
-                             event_title,
-                             None,
-                             None,
-                             time[0].strftime("%Y-%m-%dT%H:%M:%S") + "-05:00",
-                             time[1].strftime("%Y-%m-%dT%H:%M:%S") + "-05:00"
-                             )
+#     useful.InsertSingleEvent(client,
+#                              event_title,
+#                              None,
+#                              None,
+#                              time[0].strftime("%Y-%m-%dT%H:%M:%S") + "-05:00",
+#                              time[1].strftime("%Y-%m-%dT%H:%M:%S") + "-05:00"
+#                              )
 
 def get_most_recent_email_body(e_body):
     email_pattern = e_pat = re.compile('([\w\-\.]+@(\w[\w\-]+\.)+[\w\-]+)')

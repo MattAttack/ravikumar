@@ -374,7 +374,7 @@ def check_for_new_emails_and_prompt():
 def train_file(file_name):
     print "Training on File: %s" % file_name
     f = open(file_name, "r")
-    body = f.read()
+    body = strip_enron_body(f.readlines())
     print "%s" % body
 
     possible_times = parse_email(stripPunctuation(body))
@@ -390,7 +390,7 @@ def train_file(file_name):
 def test_file(file_name):
     print "Testing on File: %s" % file_name
     f = open(file_name, "r")
-    body = f.read()
+    body = strip_enron_body(f.readlines())
     print "%s" % body
 
     possible_times = parse_email(stripPunctuation(body))
@@ -498,6 +498,14 @@ def initialize_seen_email():
 
     save("seen_emails.p", seen_emails)
 
+def strip_enron_body(body):
+    line_begins = ['Date:', 'Message-ID', 'Mime-Version:',
+        'Content-Type:', 'X-From:', 'X-To', 'X-cc', 'X-bcc', 'X-Folder',
+        'X-Origin:', 'X-FileName', 'Content-Transfer-Encoding:']
+    result = body
+    for to_filter in line_begins:
+        result = filter(lambda n: not n.startswith(to_filter), result)
+    return "".join(result)
 
 def main():
     create_connection()

@@ -40,7 +40,7 @@ wordWeights = {}
 
 # Global variables for data logging
 training_results = []
-test_results = []
+testing_results = []
 
 seen_emails = []
 time_vectors = {}
@@ -112,6 +112,11 @@ def log_updates():
     save("seen_emails.p", seen_emails)
     save("output_log.p", output_log)
     save("wordWeights.p",wordWeights)
+
+    save("training_results.p", training_results)
+    save("testing_results.p", testing_results)
+
+
 
 def time_object(year, month, day, hour, minute, second):
     month  = "%02d" % int(month)
@@ -362,15 +367,42 @@ def check_for_new_emails_and_prompt():
     for i in range(min(len(files), train_count)):
         train_file(files[i])
 
+    print "Beginning Testing: \n"
     for i in range(min(len(files) - train_count, test_count)):
         test_file(files[i])
 
 
-def train_file(file):
-    print "training file %s" % file
+def train_file(file_name):
+    print "Training on File: %s" % file_name
+    f = open(file_name, "r")
+    body = f.read()
+    print "%s" % body
 
-def test_file(file):
-    print "testing file %s" % file
+    possible_times = parse_email(stripPunctuation(body))
+    possible_times, user_selection = rank_times(possible_times, body)
+
+    if (user_selection == -1):
+        print("\nNo event scheduled for email.")
+        return
+
+
+    training_results.append( (user_selection, possible_times, body) )
+
+def test_file(file_name):
+    print "Testing on File: %s" % file_name
+    f = open(file_name, "r")
+    body = f.read()
+    print "%s" % body
+
+    possible_times = parse_email(stripPunctuation(body))
+    possible_times, user_selection = rank_times(possible_times, body)
+
+    if (user_selection == -1):
+        print("\nNo event scheduled for email.")
+        return
+
+
+    testing_results.append( (user_selection, possible_times, body) )
 
 def process_email(subject, body, sender):
     global output_log

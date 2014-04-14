@@ -363,11 +363,13 @@ def check_for_new_emails_and_prompt():
 
     # Grab all of files
     files = glob.glob("enron/*.txt")
-    for i in range(min(len(files), train_count)):
+    minimumStart = min(len(files),train_count)
+
+    for i in range(0, minimumStart):
         train_file(files[i])
 
     print "Beginning Testing: \n"
-    for i in range(min(len(files) - train_count, test_count)):
+    for i in range(minimumStart, minimumStart+test_count):
         test_file(files[i])
 
 

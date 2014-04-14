@@ -524,6 +524,14 @@ def initialize_seen_email():
 
     save("seen_emails.p", seen_emails)
 
+def strip_enron_body(body):
+    line_begins = ['Date:', 'Message-ID', 'Mime-Version:',
+        'Content-Type:', 'X-From:', 'X-To', 'X-cc', 'X-bcc', 'X-Folder',
+        'X-Origin:', 'X-FileName', 'Content-Transfer-Encoding:']
+    result = body
+    for to_filter in line_begins:
+        result = filter(lambda n: not n.startswith(to_filter), result)
+    return "".join(result)
 
 def main():
     create_connection()

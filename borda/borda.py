@@ -46,7 +46,7 @@ output_log = []
 email_vectors = []
 stopwords = {}
 
-train_count, test_count = [2, 1]
+train_count, test_count = [25, 10]
 
 # Credentials to log into Gmail/GCal API
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')  # Dummy Google API Key
@@ -225,16 +225,39 @@ def rank_times(times,email,file_name):
         return rankResults
 
     def sortResults(rankResults,times):
+
+        #method to convert time objects to strings of HH:MM
+        def getStringTimes(times):
+            tempTimes = {}
+            for time in times:
+                tempTime = str(time[0].hour)+"-"+str(time[1].minute)
+                tempTimes[tempTime] = time
+            return tempTimes
+
+       
+        def bordaCountMath(stringTimes,allTimes,vector,index):
+            score = 3-index
+            #check if this time has a conflict, IE: is it in the consideration set of times?
+            time = vector.topTimes[index]
+            if time in stringTimes.keys():
+                allTimes[stringTimes[time]] = allTimes.get(stringTimes[time],0)+score
+            return allTimes
+
         #sort the results so that the top similarity scores are first then the unranked times
         rankedInOrder = sorted(rankResults,key=rankResults.get)
         #take the 3 nearest neighbors
         nearestNeighbors = rankedInOrder[0:3]
         #compute borda count
         allTimes = {}
+        #string representation of all times
+        stringTimes = getStringTimes(times)
+
         for vector in nearestNeighbors:
-            allTimes[vector.topTimes[0]] = allTimes.get(vector.topTimes[0],0)+3
-            allTimes[vector.topTimes[1]] = allTimes.get(vector.topTimes[1],0)+2
-            allTimes[vector.topTimes[2]] = allTimes.get(vector.topTimes[2],0)+1
+            allTimes = bordaCountMath(stringTimes,allTimes,vector,2)
+            allTimes = bordaCountMath(stringTimes,allTimes,vector,1)
+            allTimes = bordaCountMath(stringTimes,allTimes,vector,0)
+
+        #sort the results based on borda count
         sortedTimes = sorted(allTimes,key=allTimes.get,reverse=True)
         unranked = []
         for time in times:
@@ -288,9 +311,9 @@ def rank_times(times,email,file_name):
 
     def saveEmailVector(user_choice,sortedResults,emailVector,email_vectors,file_name):
         #top 3 counts, will be used for borda calculations
-        time1 = sortedResults[user_choice[0]]
-        time2 = sortedResults[user_choice[1]]
-        time3 = sortedResults[user_choice[2]]
+        time1 = str(sortedResults[user_choice[0]][0].hour)+"-"+str(sortedResults[user_choice[0]][1].minute)
+        time2 = str(sortedResults[user_choice[1]][0].hour)+"-"+str(sortedResults[user_choice[1]][1].minute)
+        time3 = str(sortedResults[user_choice[2]][0].hour)+"-"+str(sortedResults[user_choice[2]][1].minute)
         emailVector.addTopTimes(time1,time2,time3)
         file_name = file_name.replace('\\','')
         file_name = 'email_vectors\\' + file_name

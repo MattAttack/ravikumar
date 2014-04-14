@@ -47,6 +47,7 @@ time_vectors = {}
 output_log  = []
 stopwords = {}
 
+
 train_count, test_count = [100, 50]
 
 # Credentials to log into Gmail/GCal API
@@ -379,7 +380,7 @@ def train_file(file_name):
     possible_times = parse_email(stripPunctuation(body))
     possible_times, user_selection = rank_times(possible_times, body)
 
-    if (user_selection == -1):
+    if (user_selection[0] == -1):
         print("\nNo event scheduled for email.")
         return
 
@@ -395,7 +396,7 @@ def test_file(file_name):
     possible_times = parse_email(stripPunctuation(body))
     possible_times, user_selection = rank_times(possible_times, body)
 
-    if (user_selection == -1):
+    if (user_selection[0] == -1):
         print("\nNo event scheduled for email.")
         return
 

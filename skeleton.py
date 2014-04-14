@@ -17,6 +17,7 @@ from time import gmtime, strftime
 # Keeping track of data
 import pickle
 import os.path
+import glob
 import re
 
 # Email Connection
@@ -31,16 +32,22 @@ from vector import vector
 
 # Debugging
 import ipdb as pdb
+
 actuallySchedule = False
 
 # Global variables for vector calculations
 wordWeights = {}
 
 # Global variables for data logging
+training_results = []
+test_results = []
+
 seen_emails = []
 time_vectors = {}
 output_log  = []
 stopwords = {}
+
+train_count, test_count = [10, 5]
 
 # Credentials to log into Gmail/GCal API
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')  # Dummy Google API Key
@@ -68,7 +75,6 @@ except:
 def create_connection():
     # Connect to the calendar
     client.ClientLogin(username, password, client.source)
-
     mail.login(username+'@gmail.com', password)
     mail.list()
     mail.select("INBOX")
@@ -323,34 +329,52 @@ def check_for_new_emails_and_prompt():
     status, data = mail.search(None, 'ALL')     # Grab all the emails
     email_ids = data[0].split()                 # and their email ids
 
+    # THE OLD WAY OF GOING THROUGH THE EMAILS:
     # Scan the list from new to old.
-    for i in range(len(email_ids) -1, -1, -1):
-        email_id = email_ids[i]             # Fetch that email
-        result, data = mail.fetch(email_id, "(RFC822)")
+    # for i in range(len(email_ids) -1, -1, -1):
+    #     email_id = email_ids[i]             # Fetch that email
+    #     result, data = mail.fetch(email_id, "(RFC822)")
 
-        raw_email = data[0][1]              # Turn it into an email object
-        email_obj = email.message_from_string(raw_email)
+    #     raw_email = data[0][1]              # Turn it into an email object
+    #     email_obj = email.message_from_string(raw_email)
 
-        #TODO: fix bug where body is a list of message objects
-        # Payload can either be a list (HTML & Reg Version), or just Reg
-        while isinstance(email_obj._payload, list):
-            email_obj = email_obj._payload[0]
+    #     #TODO: fix bug where body is a list of message objects
+    #     # Payload can either be a list (HTML & Reg Version), or just Reg
+    #     while isinstance(email_obj._payload, list):
+    #         email_obj = email_obj._payload[0]
 
-        body = email_obj._payload
+    #     body = email_obj._payload
 
-        subj   = email_obj["Subject"]
-        sender = email_obj["From"]
+    #     subj   = email_obj["Subject"]
+    #     sender = email_obj["From"]
 
-        # Seen this email before? -> Seen all older. Terminate
-        if ( hash(str(subj)), hash(str(body)) ) in seen_emails:
-            return
+    #     # Seen this email before? -> Seen all older. Terminate
+    #     if ( hash(str(subj)), hash(str(body)) ) in seen_emails:
+    #         return
 
-        # If you haven't seen this before handle accordingly
-        process_email(subj, body, sender)
+    #     # If you haven't seen this before handle accordingly
+    #     process_email(subj, body, sender)
 
+    print "Beginning Training: \n"
+
+    # Grab all of files
+    files = glob.glob("enron/*.txt")
+    for i in range(min(len(files), train_count)):
+        train_file(files[i])
+
+    for i in range(min(len(files) - train_count, test_count)):
+        test_file(files[i])
+
+
+def train_file(file):
+    print "training file %s" % file
+
+def test_file(file):
+    print "testing file %s" % file
 
 def process_email(subject, body, sender):
     global output_log
+
     seen_emails.append( (hash(str(subject)), hash(str(body))) )
     #check if this email requires a new appointment
     body = get_most_recent_email_body(body)

@@ -47,7 +47,7 @@ time_vectors = {}
 output_log  = []
 stopwords = {}
 
-train_count, test_count = [1, 1]
+train_count, test_count = [100, 50]
 
 # Credentials to log into Gmail/GCal API
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')  # Dummy Google API Key

@@ -48,7 +48,7 @@ output_log  = []
 stopwords = {}
 
 
-train_count, test_count = [100, 50]
+train_count, test_count = [50, 25]
 
 # Credentials to log into Gmail/GCal API
 client = gdata.calendar.client.CalendarClient(source='Where\'s A-wheres-a-v1')  # Dummy Google API Key
@@ -372,16 +372,18 @@ def check_for_new_emails_and_prompt():
 
 
 def train_file(file_name):
+    print_separation()
+    print_separation()
+    print
     print "Training on File: %s" % file_name
     f = open(file_name, "r")
     body = strip_enron_body(f.readlines())
-    print "%s" % body
 
     possible_times = parse_email(stripPunctuation(body))
     if len(possible_times) > 0:
         print "%s" % body
         possible_times, user_selection = rank_times(possible_times, body)
-        if (user_selection[0] == -1):
+        if (user_selection == -1):
             print("\nNo event scheduled for email.")
             return
 
@@ -389,6 +391,10 @@ def train_file(file_name):
         training_results.append( (user_selection, possible_times, body) )
 
 def test_file(file_name):
+    print_separation()
+    print_separation()
+    print
+
     print "Testing on File: %s" % file_name
     f = open(file_name, "r")
     body = strip_enron_body(f.readlines())
@@ -398,7 +404,7 @@ def test_file(file_name):
     if len(possible_times) > 0:
         print "%s" % body
         possible_times, user_selection = rank_times(possible_times, body)
-        if (user_selection[0] == -1):
+        if (user_selection == -1):
             print("\nNo event scheduled for email.")
             return
 
@@ -503,12 +509,14 @@ def initialize_seen_email():
 def strip_enron_body(body):
     line_begins = ['Date:', 'Message-ID', 'Mime-Version:',
         'Content-Type:', 'X-From:', 'X-To', 'X-cc', 'X-bcc', 'X-Folder',
-        'X-Origin:', 'X-FileName', 'Content-Transfer-Encoding:']
+        'X-Origin:', 'X-FileName', 'Content-Transfer-Encoding:', 'Sent:']
     result = body
     for to_filter in line_begins:
         result = filter(lambda n: not n.startswith(to_filter), result)
     return "".join(result)
 
+def print_separation():
+    print "#################################################################"
 def main():
     create_connection()
     load_variables()
